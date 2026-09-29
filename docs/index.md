@@ -66,7 +66,7 @@ flowchart TD
   itin[Itinerary API]
   chat[Chat SSE]
   pg[(Postgres)]
-  graph[MockLLM graph]
+  mockGraph[MockLLM graph]
 
   landing --> login
   landing --> register
@@ -80,7 +80,7 @@ flowchart TD
   trips --> pg
   vault --> pg
   itin --> pg
-  chat --> graph
+  chat --> mockGraph
 ```
 
 ### Entry & auth
