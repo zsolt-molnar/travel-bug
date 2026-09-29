@@ -30,17 +30,17 @@ Working POC snapshot (Phases 1–4). Product blueprint: [`ARCHITECTURE.md`](../A
 
 ```mermaid
 flowchart LR
-  travelerApp["Traveler :3000"]
-  adminApp["Admin :3002"]
-  nestApi["Nest API :3001"]
+  travelerApp[Traveler port 3000]
+  adminApp[Admin port 3002]
+  nestApi[Nest API port 3001]
   postgres[(Postgres)]
-  mockLlm["MockLLM agent-core"]
+  mockLlm[MockLLM agent-core]
 
-  travelerApp -->|"x-user-* headers"| nestApi
-  adminApp -->|"x-user-* headers"| nestApi
+  travelerApp -->|identity headers| nestApi
+  adminApp -->|identity headers| nestApi
   nestApi --> postgres
   nestApi --> mockLlm
-  adminApp -->|"invite link /register?code="| travelerApp
+  adminApp -->|invite register link| travelerApp
 ```
 
 | Hop | Status |
@@ -56,22 +56,22 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  landing["/ Landing"]
-  login["/login"]
-  register["/register"]
-  session["localStorage tb:session:v1"]
-  appShell["/app shell"]
-  trips["GET/POST /trips"]
-  vault["GET/POST /vault/documents"]
-  itin["GET /itinerary/:tripId"]
-  chat["POST /chat SSE"]
+  landing[Landing]
+  login[Login]
+  register[Register]
+  session[localStorage session]
+  appShell[App shell]
+  trips[Trips API]
+  vault[Vault API]
+  itin[Itinerary API]
+  chat[Chat SSE]
   pg[(Postgres)]
-  graph["MockLLM graph"]
+  graph[MockLLM graph]
 
   landing --> login
   landing --> register
-  register -->|"Path A mock Stripe / Path B invite"| session
-  login -->|"any password"| session
+  register -->|Path A or B| session
+  login -->|any password| session
   session --> appShell
   appShell --> trips
   appShell --> vault
@@ -122,13 +122,13 @@ Stream path: `useChat` → `POST /chat` → `runMockConciergeGraph` in `@travel-
 
 ```mermaid
 flowchart TD
-  admin["Admin :3002 role switcher"]
-  agencies["GET/POST /agencies"]
-  staff["GET/POST /agencies/staff"]
-  agencyTrips["GET/POST /agencies/trips"]
-  clients["POST /agencies/trips/:id/clients"]
-  inviteRow["invites row + INVITE-XXXX"]
-  register["client-app /register?code="]
+  admin[Admin role switcher]
+  agencies[Agencies API]
+  staff[Staff API]
+  agencyTrips[Agency trips API]
+  clients[Trip clients API]
+  inviteRow[invites row]
+  register[Traveler register]
   pg[(Postgres)]
 
   admin --> agencies
@@ -140,7 +140,7 @@ flowchart TD
   agencyTrips --> pg
   clients --> pg
   clients --> inviteRow
-  inviteRow -->|"copy link"| register
+  inviteRow -->|copy invite link| register
 ```
 
 ### Auth & roles
