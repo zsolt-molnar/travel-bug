@@ -1,0 +1,22 @@
+{
+  "name": "travel-bug",
+  "private": true,
+  "packageManager": "pnpm@10.30.0",
+  "scripts": {
+    "start:dev": "node scripts/start-dev.mjs",
+    "stop:dev": "node scripts/stop-dev.mjs",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "postinstall": "node scripts/install-skills.mjs",
+    "skills:install": "FORCE_SKILLS_INSTALL=1 node scripts/install-skills.mjs",
+    "db:generate": "pnpm --filter @travel-bug/db db:generate",
+    "db:migrate": "pnpm --filter @travel-bug/db db:migrate",
+    "db:seed": "pnpm --filter @travel-bug/db db:seed",
+    "db:studio": "pnpm --filter @travel-bug/db db:studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}

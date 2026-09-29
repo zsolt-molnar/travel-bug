@@ -1,0 +1,40 @@
+{
+  "name": "@travel-bug/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
+    },
+    "./seed-ids": {
+      "types": "./dist/seed-ids.d.ts",
+      "default": "./dist/seed-ids.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "echo \"No lint configured\"",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/seed.ts",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.2",
+    "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "@travel-bug/config": "workspace:*",
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.3"
+  }
+}

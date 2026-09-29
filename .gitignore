@@ -1,19 +1,23 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 
 # testing
 /coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
 /build
+dist/
+
+# turbo
+.turbo
 
 # misc
 .DS_Store
@@ -23,6 +27,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # local env files
 .env*.local
@@ -34,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# nest
+apps/api-server/dist
+
+# capacitor / native
+apps/client-app/ios/App/Pods
+apps/client-app/android/.gradle
+apps/client-app/android/app/build
+*.keystore
+
+# Installed Agent Skills (npx skills add → .agents/). Reinstall via skills-lock.json.
+# Project-owned skills live in .cursor/skills/ and are committed.
+.agents/
+
+# drizzle (keep generated SQL migrations; ignore local meta journal noise only if needed)
+# packages/db/drizzle is committed
+apps/api-server/uploads

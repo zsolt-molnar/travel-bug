@@ -1,0 +1,13 @@
+---
+description: Postgres, pgvector, Drizzle migrations
+globs: packages/db/**,**/*.{sql},**/migrations/**,**/drizzle/**
+alwaysApply: false
+---
+
+# Postgres and pgvector
+
+- Parameterized queries only. Enable `vector` with `CREATE EXTENSION IF NOT EXISTS vector`.
+- For this product schema (ARCHITECTURE.md §5), embeddings are `vector(1536)` with cosine HNSW (`vector_cosine_ops`) — not `halfvec` — unless a future migration explicitly changes that.
+- Schema and migrations live in `packages/db`. Use Drizzle (`drizzle-pgvector` skill).
+- Follow installed skills: `postgres`, `design-postgres-tables`, `schema-exploration`, `postgres-database-migration`, `pgvector-semantic-search`, `postgres-hybrid-text-search`, `drizzle-pgvector`.
+- When Postgres MCP is connected, inspect live schema before guessing table shapes. Keep MCP restricted/read-only for exploration.

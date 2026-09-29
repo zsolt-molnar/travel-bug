@@ -1,0 +1,12 @@
+---
+description: Turborepo — package tasks, not root task logic
+globs: turbo.json,**/package.json
+alwaysApply: false
+---
+
+# Turborepo
+
+- Put scripts on each relevant package `package.json`. Register the task in root `turbo.json`. Root `package.json` only delegates with `turbo run <task>`.
+- Do not put build/test/lint logic only at the root when it can live in packages — that defeats parallelization and caching.
+- Use `--filter` / `--affected` for targeted runs. Declare `dependsOn`, `outputs`, `inputs`, and `env` in `turbo.json`.
+- Follow the installed `turborepo` skill for pipelines, cache, and package boundaries.

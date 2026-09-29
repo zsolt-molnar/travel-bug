@@ -1,0 +1,55 @@
+---
+description: "Capacitor mobile development: iOS, Android, native plugins, mobile build pipeline"
+globs:
+  - "apps/client-app/capacitor.config.ts"
+  - "apps/client-app/ios/**"
+  - "apps/client-app/android/**"
+  - "apps/client-app/scripts/**"
+  - "apps/client-app/assets/**"
+  - "apps/client-app/src/**/*capacitor*"
+  - "apps/client-app/src/**/*mobile*"
+---
+
+# Capacitor Mobile Development
+
+> Full documentation: `.cursor/skills/capacitor/SKILL.md`  
+> Next static export constraints: `.cursor/skills/capacitor-next-export/SKILL.md`
+
+## Project Identity
+
+- App ID: `com.travelbug.client`
+- webDir: `out`
+- iOS scheme: `travelbug://`
+- Capacitor 8
+
+## Build Commands
+
+```bash
+cd apps/client-app
+
+# Full pipeline (env + next export + cap sync)
+pnpm build-mobile
+pnpm build-mobile -- staging
+
+# Quick sync after web build
+pnpm build && pnpm cap:sync
+pnpm cap:ios
+pnpm cap:android
+```
+
+## Versioning
+
+- Source of truth: `package.json` → `marketingVersion` / `buildNumber`
+- `pnpm bump-version` / `pnpm sync-version` — see `docs/VERSIONING.md`
+
+## Platform Patterns
+
+- `Capacitor.isNativePlatform()` for native-only code
+- Safe area: `env(safe-area-inset-*)`
+- Keyboard: listeners + `Keyboard` plugin config
+- Match `backgroundColor` in capacitor.config to CSS `--background`
+
+## Android
+
+- AGP 8.x+: `proguard-android-optimize.txt`
+- Permissions in `AndroidManifest.xml` when adding plugins

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["postgres-mcp", "--access-mode=restricted"],
+      "env": {
+        "DATABASE_URI": "${env:DATABASE_URL}"
+      },
+      "envFile": "${workspaceFolder}/.env"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@travel-bug/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./typescript/base.json": "./typescript/base.json",
+    "./typescript/nextjs.json": "./typescript/nextjs.json",
+    "./typescript/nestjs.json": "./typescript/nestjs.json",
+    "./eslint/base.js": "./eslint/base.js",
+    "./tailwind/base.js": "./tailwind/base.js"
+  },
+  "files": [
+    "typescript",
+    "eslint",
+    "tailwind"
+  ]
+}

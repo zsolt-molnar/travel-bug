@@ -1,0 +1,12 @@
+---
+description: NestJS api-server conventions
+globs: apps/api-server/**
+alwaysApply: false
+---
+
+# NestJS (`apps/api-server`)
+
+- Modular monolith: future code under `src/modules`, `src/agents`, `src/queues`.
+- Follow the `nestjs-api` skill for layout and conventions.
+- Do not implement LangGraph agents or BullMQ workers until the current phase explicitly includes them.
+- Depend on `@travel-bug/db` for schema/types; do not redefine tables in the API app.

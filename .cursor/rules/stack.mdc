@@ -1,0 +1,32 @@
+---
+description: travel-bug stack — full Agentic Travel OS architecture
+alwaysApply: true
+---
+
+# travel-bug
+
+B2B2C Agentic Travel OS monorepo. Read [`.cursor/AGENTS.md`](../AGENTS.md) and [`ARCHITECTURE.md`](../../ARCHITECTURE.md) before non-trivial work.
+
+## Stack
+
+- **Apps:** `apps/client-app` (Next.js 15 + Capacitor static export), `apps/admin-portal` (Next.js 15 :3002), `apps/api-server` (NestJS :3001)
+- **Packages:** `packages/db` (Drizzle + pgvector + seed), `packages/ui` (stub), `packages/agent-core` (MockLLM LangGraph), `packages/config`
+- **Infra:** Postgres + pgvector, Redis (Compose; Redis idle until OCR §9)
+
+## Working POC (Phases 1–4)
+
+Mock LLM only. Real providers / OCR / live Stripe = ARCHITECTURE §9.
+
+## Rules
+
+- Follow installed project skills for the area you touch; see skill index in `.cursor/AGENTS.md`.
+- Never commit secrets, `.env`, or connection strings. Use `DATABASE_URL` / `REDIS_URL` locally.
+- Prefer parameterized SQL. Do not invent schema that ignores Drizzle migrations in `packages/db`.
+- Multi-tenant: `hidden_gems` → filter `operator_id`; `document_chunks` → filter `user_id`.
+- Capacitor client: static export — chat via Nest SSE, not Next Route Handlers.
+
+## Living skills policy
+
+- **Project skills** (ours): [`.cursor/skills/`](../skills/) — committed; create/update here.
+- **Installed skills** (GitHub/CLI): `.agents/skills/` — gitignored; locked in `skills-lock.json`.
+- Refresh the skill index in `.cursor/AGENTS.md` when adding a project skill.

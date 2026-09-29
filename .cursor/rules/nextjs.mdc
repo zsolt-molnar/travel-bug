@@ -1,0 +1,12 @@
+---
+description: Next.js App Router — RSC, caching, current docs
+globs: apps/client-app/**/*.{ts,tsx},apps/admin-portal/**/*.{ts,tsx},**/*.tsx
+alwaysApply: false
+---
+
+# Next.js
+
+- Use the App Router. Default to Server Components; add `"use client"` only for interactivity that needs the browser.
+- Prefer version-matched Next docs (`node_modules/next/dist/docs/` or generated `AGENTS.md`) over Pages Router habits.
+- Follow installed Next.js skills for cache components, partial prefetching, and the dev loop; follow `vercel-react-best-practices` / composition skills for React performance and APIs.
+- `apps/client-app` is Capacitor static export — follow `capacitor-next-export`. `apps/admin-portal` may use SSR.
