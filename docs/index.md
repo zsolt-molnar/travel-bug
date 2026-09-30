@@ -106,14 +106,14 @@ API calls send `Authorization: Bearer <token>` only.
 
 ### In-app screens
 
-| Screen        | Route                       | Status                                           | Notes                                                                                                                                  |
-| ------------- | --------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Home          | `/app`                      | <span class="badge badge-real">Real</span>       | Upcoming trips, day plan, documents you’ll need (each with show more / less); attachment badge on day stops when a vault doc is linked |
-| Trips list    | `/app/trips`                | <span class="badge badge-real">Real</span>       | Create personal trips; delete personal only; agency trips labeled                                                                      |
-| Trip detail   | `/app/trips/detail?tripId=` | <span class="badge badge-real">Real</span>       | Static-export safe query param. Personal: full edit. Agency: read-only + **Copy to my trips** + message board (`?panel=board`)         |
-| Vault         | `/app/vault`                | <span class="badge badge-real">Real</span>       | Upload / Save / delete; attach docs to day items from trip detail; deep link `?docId=`                                                 |
-| Notifications | `/app/notifications`        | <span class="badge badge-real">Real</span>       | Header bell + unread count; trip board + agency vault posts; mark one / mark all read                                                  |
-| Chat          | `/app/chat`                 | <span class="badge badge-partial">Partial</span> | Nest SSE <span class="badge badge-real">Real</span>; MockLLM tools <span class="badge badge-mock">Mock</span> (no OCR/RAG)             |
+| Screen        | Route                       | Status                                           | Notes                                                                                                                                                                                                       |
+| ------------- | --------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home          | `/app`                      | <span class="badge badge-real">Real</span>       | Upcoming trips, day plan, documents you’ll need (each with show more / less); attachment badge on day stops when a vault doc is linked                                                                      |
+| Trips list    | `/app/trips`                | <span class="badge badge-real">Real</span>       | Create personal trips; delete personal only; agency trips labeled                                                                                                                                           |
+| Trip detail   | `/app/trips/detail?tripId=` | <span class="badge badge-real">Real</span>       | Static-export safe query param. Personal: full edit (manual days/items + add-from-gem). Agency: read-only + **Copy to my trips** + message board (`?panel=board`). Agentic day enrichment is not wired yet. |
+| Vault         | `/app/vault`                | <span class="badge badge-real">Real</span>       | Upload / Save / delete; attach docs to day items from trip detail; deep link `?docId=`                                                                                                                      |
+| Notifications | `/app/notifications`        | <span class="badge badge-real">Real</span>       | Header bell + unread count; trip board + agency vault posts; mark one / mark all read                                                                                                                       |
+| Chat          | `/app/chat`                 | <span class="badge badge-partial">Partial</span> | Nest SSE <span class="badge badge-real">Real</span>; MockLLM tools <span class="badge badge-mock">Mock</span> (no OCR/RAG)                                                                                  |
 
 **Personal vs agency trips:** personal trips (`operatorId` null) are editable by the traveler. Agency-managed trips are view-only; travelers copy them to edit. Vault documents on agency trips stay with the agency trip and are duplicated onto the copy.
 
@@ -176,16 +176,16 @@ flowchart TD
 
 ### Agency operations
 
-| Action                     | API / UI                                     | Status                                                                |
-| -------------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
-| Agencies                   | `GET/POST /agencies`                         | <span class="badge badge-real">Real</span> — superadmin               |
-| Places tree                | `GET/POST/PATCH/DELETE /places`              | <span class="badge badge-real">Real</span> — superadmin write         |
-| Hidden gems                | `GET/POST/PATCH/DELETE /gems`                | <span class="badge badge-real">Real</span> — tenant + place scoped    |
-| Trips list / create / edit | `/agencies/trips`                            | <span class="badge badge-real">Real</span> — title, dates, itinerary  |
-| Message board              | `GET/POST /trips/:tripId/messages`           | <span class="badge badge-real">Real</span> — one-way to travelers     |
-| Trip travelers             | `GET/POST /agencies/trips/:tripId/clients`   | <span class="badge badge-real">Real</span> — paginated + search       |
-| Per-traveler vault         | `/trips/[id]/travelers/[userId]` + vault API | <span class="badge badge-real">Real</span> — upload notifies traveler |
-| Invite unknown email       | `invites` row + client register link         | <span class="badge badge-real">Real</span>                            |
+| Action                     | API / UI                                     | Status                                                                                                                        |
+| -------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Agencies                   | `GET/POST /agencies`                         | <span class="badge badge-real">Real</span> — superadmin                                                                       |
+| Places tree                | `GET/POST/PATCH/DELETE /places`              | <span class="badge badge-real">Real</span> — superadmin write                                                                 |
+| Hidden gems                | `GET/POST/PATCH/DELETE /gems`                | <span class="badge badge-real">Real</span> — tenant + place scoped                                                            |
+| Trips list / create / edit | `/agencies/trips`                            | <span class="badge badge-real">Real</span> — title, dates, itinerary (manual + add-from-gem; enrichment agents not wired yet) |
+| Message board              | `GET/POST /trips/:tripId/messages`           | <span class="badge badge-real">Real</span> — one-way to travelers                                                             |
+| Trip travelers             | `GET/POST /agencies/trips/:tripId/clients`   | <span class="badge badge-real">Real</span> — paginated + search                                                               |
+| Per-traveler vault         | `/trips/[id]/travelers/[userId]` + vault API | <span class="badge badge-real">Real</span> — upload notifies traveler                                                         |
+| Invite unknown email       | `invites` row + client register link         | <span class="badge badge-real">Real</span>                                                                                    |
 
 Hidden gems visibility: `(operator_id IS NULL OR operator_id = :agency)` plus place subtree. Day items can focus a place; add-from-gem respects that scope.
 
@@ -227,12 +227,23 @@ Seeded via `pnpm db:seed` (stable UUIDs in `packages/db/src/seed-ids.ts`). Passw
 
 ---
 
+## Future AI capabilities
+
+Three separate outcomes beyond the Working POC (see ARCHITECTURE §6 agents and §9). Chat MockLLM today is **not** the same as itinerary enrichment or vault RAG.
+
+| Capability               | Product outcome                                                                                                                                                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Concierge chat**       | Real LLM behind Nest SSE chat (replaces MockLLM tool cards).                                                                                                                                                                 |
+| **Vault intelligence**   | OCR on uploads → `document_chunks` → answers from the traveler’s own documents.                                                                                                                                              |
+| **Itinerary enrichment** | Agents that suggest **programs / activities** into the day plan when building a trip (admin + traveler): operator **hidden gems** first, optional live web fill — writing structured itinerary stops, not only chat replies. |
+
+---
+
 ## Not in this POC
 
-These are out of the Working POC (see ARCHITECTURE §9):
+Also out of the Working POC (ARCHITECTURE §9):
 
 - Device **push** notifications (in-app notifications and the header bell are in scope)
-- Real LLM providers / embeddings; OCR → `document_chunks` / RAG chat
 - Live Stripe Checkout
 - Hosted IdP (Auth0 / NextAuth / cookie sessions)
 - Capacitor offline SQLite / offline maps

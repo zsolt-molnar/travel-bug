@@ -18,10 +18,12 @@ description: LangGraph agent conventions for packages/agent-core and apps/api-se
 - Document / Vault RAG (filter `user_id`)
 - Scraper (Firecrawl) — **post-POC only** (§9)
 
+**Itinerary enrichment** (Planner + Curator → structured day items in trip UX) is a distinct §9 product outcome from chat tools and vault RAG. Do not treat MockLLM `generateItineraryTimeline` chat cards as enrichment.
+
 ## Phase gate
 
-- **Phase 3–4 POC:** implement LangGraph with a **MockLLM** adapter. Yield tool calls (`showTicket`, `generateItineraryTimeline`). No OpenAI/Anthropic network requests.
-- **§9 Future:** swap MockLLM for real providers; add embeddings + Scraper.
+- **Working POC:** LangGraph with a **MockLLM** adapter for Nest `POST /chat`. Yield tool calls (`showTicket`, `generateItineraryTimeline`). No OpenAI/Anthropic network requests. Itinerary UI is manual + add-from-gem only.
+- **§9 Future:** swap MockLLM for real providers; gem embeddings; wire Planner/Curator into itinerary create/edit; OCR/RAG; optional Scraper.
 
 ## Tool / generative UI contracts
 

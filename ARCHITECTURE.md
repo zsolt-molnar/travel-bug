@@ -402,24 +402,33 @@ Replaces Phase 3–4 mock identity with real JWT while keeping MockLLM.
 
 **Local bootstrap (`pnpm start:dev`):** ensure `.env` → Docker healthy → migrate → **seed only if DB has no users** (preserves local data) → `turbo run dev`. Force wipe+reseed: `pnpm start:dev -- --seed` or `pnpm db:seed`. Skip seed: `--no-seed`.
 
-**POC + Phase 5 outcome:** traveler + admin on Nest/Postgres with JWT; places/gems/itinerary editable; in-app trip board + notifications; MockLLM chat — ready for §9 real providers / OCR / billing / push.
+**POC + Phase 5 outcome:** traveler + admin on Nest/Postgres with JWT; places/gems/itinerary editable; in-app trip board + notifications; MockLLM chat — ready for §9 real providers / itinerary enrichment / OCR / billing / push.
 
 ---
 
 ## 9. Future Roadmap (Post–Phase 5 — Out of Scope Until Explicitly Started)
 
-| Future area                                               | Why later                                                       |
-| --------------------------------------------------------- | --------------------------------------------------------------- |
-| Real LLM providers (OpenAI / Anthropic) + real embeddings | Phase 5 still uses `MockLLM` swap point only                    |
-| BullMQ OCR pipeline → `document_chunks` / RAG answers     | Redis in Compose but idle; vault stores files/metadata only     |
-| Firecrawl / live web scraper agent                        | Curator uses seeded/admin gems + mock responses                 |
-| Gem embed-on-save / vector ingest workers                 | Admin gem CRUD exists; embeddings not computed on write yet     |
-| Hosted auth (Auth0 / NextAuth / cookie sessions)          | Local JWT + bcrypt is Phase 5; hosted IdP still later           |
-| Live Stripe Checkout / billing                            | Registration Path A is UI mock                                  |
-| Capacitor offline SQLite / offline maps                   | Online stack first                                              |
-| Shared `packages/ui` Shadcn extract                       | Per-app components until design stabilizes                      |
-| White-label brand theming per operator                    | `brand_config` column exists; UI not driven by it yet           |
-| Generative UI beyond ticket + timeline cards              | Map cards, swap/drag itinerary, emergency cards = later         |
-| Push notifications / GPS “up next”                        | In-app notifications exist (Phase 5.8); device push still later |
+Three distinct **AI product outcomes** (do not collapse into “just chat + RAG”):
 
-Suggested next order (flexible): real AI swap-in → OCR/RAG workers → gem embeddings → hosted auth/billing → offline/native polish.
+| AI outcome                      | What it delivers                                                                                                                                                                                                                                                                                                                                       | Depends on                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| **Concierge chat LLM**          | Real models behind Nest SSE chat (replace `MockLLM`)                                                                                                                                                                                                                                                                                                   | Provider keys + swap at MockLLM boundary                          |
+| **Vault intelligence**          | OCR → `document_chunks` → DocumentAgent RAG answers                                                                                                                                                                                                                                                                                                    | BullMQ workers, embeddings                                        |
+| **Itinerary enrichment agents** | When creating/editing a day plan (admin + traveler), `ItineraryPlannerAgent` + `CuratorAgent` (+ optional `ScraperAgent`) propose programs/activities and write structured `itinerary_items` — operator gems first, live web gap-fill second. **Not chat-only** — wired into trip/itinerary UX (suggest day / fill gaps / enrich stops). Behavior: §6. | Real LLM + gem embeddings; Firecrawl only if live fill is enabled |
+
+| Future area                                               | Why later                                                               |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Real LLM providers (OpenAI / Anthropic) + real embeddings | Working POC still uses `MockLLM` swap point only                        |
+| Gem embed-on-save / vector ingest workers                 | Admin gem CRUD exists; embeddings not computed on write yet             |
+| Itinerary enrichment agentic layer (Planner + Curator UX) | Manual itinerary + add-from-gem today; agents not invoked on trip build |
+| Firecrawl / live web scraper agent                        | Optional gap-fill after Curator; MockLLM curator stubs today            |
+| BullMQ OCR pipeline → `document_chunks` / RAG answers     | Redis in Compose but idle; vault stores files/metadata only             |
+| Hosted auth (Auth0 / NextAuth / cookie sessions)          | Local JWT + bcrypt is current; hosted IdP still later                   |
+| Live Stripe Checkout / billing                            | Registration Path A is UI mock                                          |
+| Capacitor offline SQLite / offline maps                   | Online stack first                                                      |
+| Shared `packages/ui` Shadcn extract                       | Per-app components until design stabilizes                              |
+| White-label brand theming per operator                    | `brand_config` column exists; UI not driven by it yet                   |
+| Generative UI beyond ticket + timeline cards              | Map cards, swap/drag itinerary, emergency cards = later                 |
+| Push notifications / GPS “up next”                        | In-app notifications exist; device push still later                     |
+
+Suggested next order (flexible): **real LLM swap-in → gem embeddings → itinerary enrichment UX → OCR/RAG workers →** hosted auth/billing → push → offline/native polish.
