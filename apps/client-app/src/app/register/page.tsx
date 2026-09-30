@@ -1,5 +1,5 @@
-import { Suspense } from "react";
-import RegisterClient from "./register-client";
+import { Suspense } from 'react';
+import RegisterClient from './register-client';
 
 export default function Page() {
   return (

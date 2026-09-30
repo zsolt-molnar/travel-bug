@@ -22,7 +22,9 @@ const packageJson = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf8
 const { marketingVersion, buildNumber } = packageJson;
 
 if (!marketingVersion || !buildNumber) {
-  console.error('❌ Error: marketingVersion and buildNumber must be defined in package.json');
+  console.error(
+    '❌ Error: marketingVersion and buildNumber must be defined in package.json',
+  );
   process.exit(1);
 }
 
@@ -37,17 +39,19 @@ let androidContent = readFileSync(androidBuildGradle, 'utf8');
 // Update versionCode
 androidContent = androidContent.replace(
   /versionCode\s+\d+/,
-  `versionCode ${buildNumber}`
+  `versionCode ${buildNumber}`,
 );
 
 // Update versionName
 androidContent = androidContent.replace(
   /versionName\s+"[^"]+"/,
-  `versionName "${marketingVersion}"`
+  `versionName "${marketingVersion}"`,
 );
 
 writeFileSync(androidBuildGradle, androidContent, 'utf8');
-console.log(`✅ Android synced: versionName="${marketingVersion}" versionCode=${buildNumber}`);
+console.log(
+  `✅ Android synced: versionName="${marketingVersion}" versionCode=${buildNumber}`,
+);
 
 // ============================================
 // iOS: Update project.pbxproj
@@ -58,16 +62,18 @@ let iosContent = readFileSync(iosPbxproj, 'utf8');
 // Update CURRENT_PROJECT_VERSION (build number)
 iosContent = iosContent.replace(
   /CURRENT_PROJECT_VERSION = [\d.]+;/g,
-  `CURRENT_PROJECT_VERSION = ${buildNumber};`
+  `CURRENT_PROJECT_VERSION = ${buildNumber};`,
 );
 
 // Update MARKETING_VERSION
 iosContent = iosContent.replace(
   /MARKETING_VERSION = [^;]+;/g,
-  `MARKETING_VERSION = ${marketingVersion};`
+  `MARKETING_VERSION = ${marketingVersion};`,
 );
 
 writeFileSync(iosPbxproj, iosContent, 'utf8');
-console.log(`✅ iOS synced: MARKETING_VERSION=${marketingVersion} CURRENT_PROJECT_VERSION=${buildNumber}`);
+console.log(
+  `✅ iOS synced: MARKETING_VERSION=${marketingVersion} CURRENT_PROJECT_VERSION=${buildNumber}`,
+);
 
 console.log('✨ Version sync complete!');

@@ -1,13 +1,15 @@
-import type { SessionUser } from "./types";
-import { SEED_IDS } from "./types";
+import type { AuthResponse, PlanType, SessionUser, UserRole } from './types';
 
-const SESSION_KEY = "tb:session:v1";
+const SESSION_KEY = 'tb:session:v1';
 
 export function getSession(): SessionUser | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as SessionUser) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SessionUser;
+    if (!parsed?.accessToken || !parsed?.userId) return null;
+    return parsed;
   } catch {
     return null;
   }
@@ -21,18 +23,20 @@ export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-export function createTravelerSession(input: {
-  email: string;
-  name: string;
-  plan: SessionUser["plan"];
-  operatorId?: string | null;
-}): SessionUser {
+export function sessionFromAuth(
+  response: AuthResponse,
+  extras?: { name?: string; plan?: PlanType },
+): SessionUser {
+  const plan: PlanType =
+    extras?.plan ?? (response.user.operatorId ? 'agency_invite' : 'individual_monthly');
   return {
-    userId: SEED_IDS.traveler,
-    operatorId: input.operatorId ?? SEED_IDS.operator,
-    email: input.email,
-    name: input.name,
-    role: "traveler",
-    plan: input.plan,
+    accessToken: response.accessToken,
+    userId: response.user.id,
+    operatorId: response.user.operatorId,
+    email: response.user.email,
+    name:
+      extras?.name?.trim() || response.user.email.split('@')[0] || response.user.email,
+    role: response.user.role as UserRole,
+    plan,
   };
 }

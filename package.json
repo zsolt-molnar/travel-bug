@@ -8,14 +8,27 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "pnpm --filter api-server test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "postinstall": "node scripts/install-skills.mjs",
     "skills:install": "FORCE_SKILLS_INSTALL=1 node scripts/install-skills.mjs",
     "db:generate": "pnpm --filter @travel-bug/db db:generate",
     "db:migrate": "pnpm --filter @travel-bug/db db:migrate",
     "db:seed": "pnpm --filter @travel-bug/db db:seed",
-    "db:studio": "pnpm --filter @travel-bug/db db:studio"
+    "db:studio": "pnpm --filter @travel-bug/db db:studio",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   }

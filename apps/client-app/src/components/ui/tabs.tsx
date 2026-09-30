@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
+import { cn } from '@/lib/utils';
 
 export const Tabs = TabsPrimitive.Root;
 
@@ -13,7 +13,7 @@ export function TabsList({
   return (
     <TabsPrimitive.List
       className={cn(
-        "inline-flex h-11 w-full items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground",
+        'inline-flex h-11 w-full items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground',
         className,
       )}
       {...props}
@@ -28,7 +28,7 @@ export function TabsTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "inline-flex min-h-9 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        'inline-flex min-h-9 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm',
         className,
       )}
       {...props}
@@ -42,7 +42,7 @@ export function TabsContent({
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
     <TabsPrimitive.Content
-      className={cn("mt-4 focus-visible:outline-none", className)}
+      className={cn('mt-4 focus-visible:outline-none', className)}
       {...props}
     />
   );

@@ -6,30 +6,30 @@
  * Skip with: SKIP_SKILLS_INSTALL=1 pnpm i
  * Force:     pnpm skills:install  (or FORCE_SKILLS_INSTALL=1)
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const lockPath = join(root, "skills-lock.json");
-const agentsSkills = join(root, ".agents", "skills");
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const lockPath = join(root, 'skills-lock.json');
+const agentsSkills = join(root, '.agents', 'skills');
 
-if (process.env.SKIP_SKILLS_INSTALL === "1") {
-  console.log("[skills] SKIP_SKILLS_INSTALL=1 — skipping");
+if (process.env.SKIP_SKILLS_INSTALL === '1') {
+  console.log('[skills] SKIP_SKILLS_INSTALL=1 — skipping');
   process.exit(0);
 }
 
 if (!existsSync(lockPath)) {
-  console.log("[skills] no skills-lock.json — skipping");
+  console.log('[skills] no skills-lock.json — skipping');
   process.exit(0);
 }
 
-const lock = JSON.parse(readFileSync(lockPath, "utf8"));
+const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
 const expected = Object.keys(lock.skills || {});
 
 if (expected.length === 0) {
-  console.log("[skills] lockfile empty — skipping");
+  console.log('[skills] lockfile empty — skipping');
   process.exit(0);
 }
 
@@ -41,7 +41,7 @@ const installed = existsSync(agentsSkills)
 
 const missing = expected.filter((name) => !installed.includes(name));
 
-if (missing.length === 0 && process.env.FORCE_SKILLS_INSTALL !== "1") {
+if (missing.length === 0 && process.env.FORCE_SKILLS_INSTALL !== '1') {
   console.log(
     `[skills] ${expected.length} locked skills already present in .agents/skills — skipping`,
   );
@@ -49,19 +49,15 @@ if (missing.length === 0 && process.env.FORCE_SKILLS_INSTALL !== "1") {
 }
 
 if (missing.length) {
-  console.log(`[skills] missing: ${missing.join(", ")}`);
+  console.log(`[skills] missing: ${missing.join(', ')}`);
 }
-console.log("[skills] restoring from skills-lock.json …");
+console.log('[skills] restoring from skills-lock.json …');
 
-const result = spawnSync(
-  "npx",
-  ["--yes", "skills", "experimental_install"],
-  {
-    cwd: root,
-    stdio: "inherit",
-    env: { ...process.env, CI: process.env.CI || "1" },
-    shell: process.platform === "win32",
-  },
-);
+const result = spawnSync('npx', ['--yes', 'skills', 'experimental_install'], {
+  cwd: root,
+  stdio: 'inherit',
+  env: { ...process.env, CI: process.env.CI || '1' },
+  shell: process.platform === 'win32',
+});
 
 process.exit(result.status ?? 1);

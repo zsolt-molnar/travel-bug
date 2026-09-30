@@ -1,11 +1,12 @@
+import { config } from 'dotenv';
+import { resolve } from 'node:path';
+
+config({ path: resolve(__dirname, '../../../.env') });
+
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'node:path';
-import { config } from 'dotenv';
-import { resolve } from 'node:path';
 import { AppModule } from './app.module';
-
-config({ path: resolve(__dirname, '../../../.env') });
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function LandingPage() {
   return (
@@ -24,14 +24,14 @@ export default function LandingPage() {
             className="pointer-events-none absolute inset-0 -z-10 opacity-90"
             style={{
               background:
-                "linear-gradient(165deg, #0d5c63 0%, #0a3d42 45%, #1a2e2b 100%)",
+                'linear-gradient(165deg, #0d5c63 0%, #0a3d42 45%, #1a2e2b 100%)',
             }}
           />
           <div
             className="pointer-events-none absolute inset-0 -z-10 opacity-30"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 70% 30%, #e8a838 0%, transparent 40%)",
+                'radial-gradient(circle at 70% 30%, #e8a838 0%, transparent 40%)',
             }}
           />
           <div className="mx-auto max-w-5xl text-primary-foreground">
@@ -39,12 +39,12 @@ export default function LandingPage() {
               Travel Bug
             </p>
             <h1 className="mt-4 max-w-xl text-xl font-medium text-white/90 md:text-2xl">
-              The AI pocket travel app for solo explorers and agencies who care
-              about the details.
+              The AI pocket travel app for solo explorers and agencies who care about the
+              details.
             </h1>
             <p className="mt-4 max-w-lg text-base text-white/70">
-              Vault your tickets, follow a day-by-day timeline, and chat with a
-              concierge that knows your trip — not a generic chatbot.
+              Vault your tickets, follow a day-by-day timeline, and chat with a concierge
+              that knows your trip — not a generic chatbot.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/register">
@@ -74,8 +74,8 @@ export default function LandingPage() {
               For individuals
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Monthly access to your personal vault, itinerary timeline, and
-              AI chat — built for phones, usable on the web while you plan.
+              Monthly access to your personal vault, itinerary timeline, and AI chat —
+              built for phones, usable on the web while you plan.
             </p>
           </div>
           <div>
@@ -83,8 +83,8 @@ export default function LandingPage() {
               For travel agencies
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Invite clients with a code. They get a free pass for the trip
-              window plus one month prior — white-glove pocket guides at scale.
+              Invite clients with a code. They get a free pass for the trip window plus
+              one month prior — white-glove pocket guides at scale.
             </p>
           </div>
         </section>

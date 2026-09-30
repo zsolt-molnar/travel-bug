@@ -8,22 +8,22 @@ import {
   createParamDecorator,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { SEED_IDS } from '@travel-bug/db';
+import { AuthGuard } from '@nestjs/passport';
 
-export type AppRole =
-  | 'superadmin'
-  | 'agency_manager'
-  | 'agency_agent'
-  | 'traveler';
+export type AppRole = 'superadmin' | 'agency_manager' | 'agency_agent' | 'traveler';
 
 export interface RequestIdentity {
   userId: string;
+  email: string;
   operatorId: string | null;
   role: AppRole;
 }
 
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: AppRole[]) => SetMetadata(ROLES_KEY, roles);
+
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 export const Identity = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): RequestIdentity => {
@@ -36,23 +36,33 @@ export const Identity = createParamDecorator(
 );
 
 @Injectable()
-export class IdentityGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest<{
-      headers: Record<string, string | undefined>;
-      identity?: RequestIdentity;
-    }>();
-    const userId =
-      req.headers['x-user-id'] ?? SEED_IDS.traveler;
-    const operatorId =
-      req.headers['x-operator-id'] ?? SEED_IDS.operator;
-    const role = (req.headers['x-user-role'] ?? 'traveler') as AppRole;
-    req.identity = {
-      userId,
-      operatorId: operatorId === 'null' ? null : operatorId,
-      role,
-    };
-    return true;
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  constructor(private reflector: Reflector) {
+    super();
+  }
+
+  canActivate(context: ExecutionContext) {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+    return super.canActivate(context);
+  }
+
+  handleRequest<TUser>(
+    err: Error | null,
+    user: TUser,
+    _info: unknown,
+    context: ExecutionContext,
+  ): TUser {
+    if (err || !user) {
+      throw err || new UnauthorizedException('Invalid or missing token');
+    }
+    const identity = user as unknown as RequestIdentity;
+    const req = context.switchToHttp().getRequest<{ identity?: RequestIdentity }>();
+    req.identity = identity;
+    return user;
   }
 }
 

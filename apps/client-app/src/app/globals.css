@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #f3f6f4;
@@ -83,7 +83,6 @@ body {
   body.app-desktop-bg {
     background:
       radial-gradient(ellipse at 20% 0%, #d7ebe6 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 100%, #f0e2c4 0%, transparent 45%),
-      #e8eeeb;
+      radial-gradient(ellipse at 80% 100%, #f0e2c4 0%, transparent 45%), #e8eeeb;
   }
 }

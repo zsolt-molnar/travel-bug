@@ -1,78 +1,87 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createTravelerSession, setSession } from "@/lib/auth";
-import { SEED_IDS, VALID_INVITE_CODES } from "@/lib/types";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { sessionFromAuth, setSession } from '@/lib/auth';
+import { apiPost } from '@/lib/api';
+import type { AuthResponse } from '@/lib/types';
 
 export default function RegisterClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialPath =
-    searchParams.get("path") === "agency" || searchParams.get("code")
-      ? "agency"
-      : "individual";
+    searchParams.get('path') === 'agency' || searchParams.get('code')
+      ? 'agency'
+      : 'individual';
   const [tab, setTab] = useState(initialPath);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [invite, setInvite] = useState(searchParams.get("code") ?? "");
-  const [error, setError] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [invite, setInvite] = useState(searchParams.get('code') ?? '');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const inviteValid = useMemo(
-    () =>
-      VALID_INVITE_CODES.includes(
-        invite.trim().toUpperCase() as (typeof VALID_INVITE_CODES)[number],
-      ),
-    [invite],
-  );
-
-  function finish(plan: "individual_monthly" | "agency_invite") {
-    if (!name.trim() || !email.trim()) {
-      setError("Name and email are required.");
+  async function finishSignup(plan: 'individual_monthly' | 'agency_invite') {
+    if (!name.trim() || !email.trim() || password.length < 8) {
+      setError('Name, email, and a password of at least 8 characters are required.');
       return;
     }
-    setSession(
-      createTravelerSession({
-        email: email.trim(),
-        name: name.trim(),
-        plan,
-        operatorId: SEED_IDS.operator,
-      }),
-    );
-    router.push("/app");
+    setError('');
+    setLoading(true);
+    try {
+      const res =
+        plan === 'agency_invite'
+          ? await apiPost<AuthResponse>('/auth/register-invite', {
+              code: invite.trim(),
+              email: email.trim(),
+              password,
+              name: name.trim(),
+            })
+          : await apiPost<AuthResponse>('/auth/signup', {
+              email: email.trim(),
+              password,
+              name: name.trim(),
+            });
+      setSession(sessionFromAuth(res, { name: name.trim(), plan }));
+      router.push('/app');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function onIndividualSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    if (!name.trim() || !email.trim()) {
-      setError("Name and email are required.");
+    setError('');
+    if (!name.trim() || !email.trim() || password.length < 8) {
+      setError('Name, email, and a password of at least 8 characters are required.');
       return;
     }
     setCheckoutOpen(true);
   }
 
-  function onAgencySubmit(e: React.FormEvent) {
+  async function onAgencySubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    if (!inviteValid) {
-      setError("Invalid invite code. Try AGENCY2026 or PARIS-VIP.");
+    setError('');
+    if (!invite.trim()) {
+      setError('Invite code is required.');
       return;
     }
-    finish("agency_invite");
+    await finishSignup('agency_invite');
   }
 
   return (
@@ -80,9 +89,7 @@ export default function RegisterClient() {
       <Link href="/" className="font-display text-2xl font-semibold text-primary">
         Travel Bug
       </Link>
-      <h1 className="mt-6 font-display text-3xl font-semibold">
-        Create your account
-      </h1>
+      <h1 className="mt-6 font-display text-3xl font-semibold">Create your account</h1>
       <p className="mt-2 text-muted-foreground">
         Choose individual subscription or an agency invite code.
       </p>
@@ -123,9 +130,18 @@ export default function RegisterClient() {
                       autoComplete="email"
                     />
                   </div>
-                  {error ? (
-                    <p className="text-sm text-destructive">{error}</p>
-                  ) : null}
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      minLength={8}
+                    />
+                  </div>
+                  {error ? <p className="text-sm text-destructive">{error}</p> : null}
                   <Button type="submit" className="w-full">
                     Continue to checkout
                   </Button>
@@ -145,15 +161,18 @@ export default function RegisterClient() {
                       </div>
                     </div>
                   </div>
+                  {error ? <p className="text-sm text-destructive">{error}</p> : null}
                   <Button
                     className="w-full"
-                    onClick={() => finish("individual_monthly")}
+                    disabled={loading}
+                    onClick={() => void finishSignup('individual_monthly')}
                   >
-                    Pay $12 (mock)
+                    {loading ? 'Creating account…' : 'Pay $12 (mock)'}
                   </Button>
                   <Button
                     variant="ghost"
                     className="w-full"
+                    disabled={loading}
                     onClick={() => setCheckoutOpen(false)}
                   >
                     Back
@@ -192,20 +211,29 @@ export default function RegisterClient() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="apassword">Password</Label>
+                  <Input
+                    id="apassword"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                    minLength={8}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="code">Invite / coupon code</Label>
                   <Input
                     id="code"
                     value={invite}
                     onChange={(e) => setInvite(e.target.value)}
-                    placeholder="AGENCY2026"
+                    placeholder="Invite code"
                     className="uppercase"
                   />
                 </div>
-                {error ? (
-                  <p className="text-sm text-destructive">{error}</p>
-                ) : null}
-                <Button type="submit" className="w-full">
-                  Activate free pass
+                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Activating…' : 'Activate free pass'}
                 </Button>
               </form>
             </CardContent>
@@ -214,7 +242,7 @@ export default function RegisterClient() {
       </Tabs>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Already have an account?{' '}
         <Link href="/login" className="font-medium text-primary underline">
           Log in
         </Link>

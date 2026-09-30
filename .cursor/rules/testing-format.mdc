@@ -1,0 +1,12 @@
+---
+description: Prettier formatting, husky hooks, and API test expectations for travel-bug
+globs:
+alwaysApply: true
+---
+
+# Testing & formatting
+
+- Format with root Prettier (`.prettierrc`). Do not skip husky / lint-staged (`--no-verify`) in normal work.
+- When changing Nest auth, ACL, gems catalog, or itinerary write paths, add or update `apps/api-server` unit specs and light e2e under `test/`.
+- Follow skill `testing-format` for commands and patterns.
+- Keep MockLLM chat transport intact; do not add Next Route Handlers in `client-app`.

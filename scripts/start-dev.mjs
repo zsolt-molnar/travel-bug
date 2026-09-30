@@ -5,6 +5,7 @@
  *
  * Usage:
  *   pnpm start:dev
+ *   pnpm start:dev -- --seed
  *   pnpm start:dev -- --no-seed
  *   pnpm start:dev -- --apps-only
  *   pnpm start:dev -- --no-migrate
@@ -12,26 +13,30 @@
  * Flags:
  *   --apps-only   Skip .env / Docker / migrate / seed; only run turbo dev
  *   --no-migrate  Skip db:migrate
- *   --no-seed     Skip db:seed
+ *   --seed        Force wipe + reseed demo data
+ *   --no-seed     Never seed (even on empty DB)
+ *
+ * Default seed behavior: seed only if the DB has no users (preserves local data).
  */
 
-import { spawn, spawnSync, execSync } from "node:child_process";
-import { copyFileSync, existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { spawn, spawnSync, execSync } from 'node:child_process';
+import { copyFileSync, existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const rootDir = resolve(__dirname, "..");
+const rootDir = resolve(__dirname, '..');
 
-const args = new Set(process.argv.slice(2).filter((a) => a !== "--"));
-const appsOnly = args.has("--apps-only");
-const noMigrate = args.has("--no-migrate");
-const noSeed = args.has("--no-seed");
+const args = new Set(process.argv.slice(2).filter((a) => a !== '--'));
+const appsOnly = args.has('--apps-only');
+const noMigrate = args.has('--no-migrate');
+const forceSeed = args.has('--seed');
+const noSeed = args.has('--no-seed');
 
 function run(command, options = {}) {
   console.log(`   $ ${command}`);
   execSync(command, {
-    stdio: "inherit",
+    stdio: 'inherit',
     cwd: rootDir,
     ...options,
   });
@@ -41,38 +46,38 @@ function runOk(command) {
   const result = spawnSync(command, {
     shell: true,
     cwd: rootDir,
-    encoding: "utf8",
+    encoding: 'utf8',
   });
   return result.status === 0;
 }
 
 function ensureEnv() {
-  const envPath = resolve(rootDir, ".env");
-  const examplePath = resolve(rootDir, ".env.example");
+  const envPath = resolve(rootDir, '.env');
+  const examplePath = resolve(rootDir, '.env.example');
 
   if (existsSync(envPath)) {
-    console.log("✅ .env already present");
+    console.log('✅ .env already present');
     return;
   }
 
   if (!existsSync(examplePath)) {
-    console.error("❌ Error: .env missing and .env.example not found");
+    console.error('❌ Error: .env missing and .env.example not found');
     process.exit(1);
   }
 
   copyFileSync(examplePath, envPath);
-  console.log("✅ Created .env from .env.example");
+  console.log('✅ Created .env from .env.example');
 }
 
 function ensureDocker() {
-  if (!runOk("docker info >/dev/null 2>&1")) {
-    console.error("❌ Error: Docker is not running. Start Docker Desktop and retry.\n");
+  if (!runOk('docker info >/dev/null 2>&1')) {
+    console.error('❌ Error: Docker is not running. Start Docker Desktop and retry.\n');
     process.exit(1);
   }
 
-  console.log("   Starting Postgres + Redis (wait for healthy)...");
-  run("docker compose up -d --wait");
-  console.log("✅ Docker services healthy");
+  console.log('   Starting Postgres + Redis (wait for healthy)...');
+  run('docker compose up -d --wait');
+  console.log('✅ Docker services healthy');
 }
 
 function printBanner() {
@@ -87,13 +92,13 @@ function printBanner() {
 `);
 }
 
-function startApps(stepLabel = "5️⃣") {
+function startApps(stepLabel = '5️⃣') {
   printBanner();
   console.log(`${stepLabel}  Starting apps (turbo run dev)...\n`);
 
-  const child = spawn("pnpm", ["exec", "turbo", "run", "dev"], {
+  const child = spawn('pnpm', ['exec', 'turbo', 'run', 'dev'], {
     cwd: rootDir,
-    stdio: "inherit",
+    stdio: 'inherit',
     env: process.env,
   });
 
@@ -103,10 +108,10 @@ function startApps(stepLabel = "5️⃣") {
     }
   };
 
-  process.on("SIGINT", () => shutdown("SIGINT"));
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-  child.on("exit", (code, signal) => {
+  child.on('exit', (code, signal) => {
     if (signal) {
       process.exit(0);
     }
@@ -115,40 +120,44 @@ function startApps(stepLabel = "5️⃣") {
 }
 
 function main() {
-  console.log("\n🚀 Starting Travel Bug local stack...\n");
+  console.log('\n🚀 Starting Travel Bug local stack...\n');
 
   if (appsOnly) {
-    console.log("0️⃣  --apps-only: skipping infra bootstrap\n");
-    startApps("1️⃣");
+    console.log('0️⃣  --apps-only: skipping infra bootstrap\n');
+    startApps('1️⃣');
     return;
   }
 
   try {
-    console.log("1️⃣  Ensuring .env...");
+    console.log('1️⃣  Ensuring .env...');
     ensureEnv();
 
-    console.log("\n2️⃣  Ensuring Docker services...");
+    console.log('\n2️⃣  Ensuring Docker services...');
     ensureDocker();
 
     if (!noMigrate) {
-      console.log("\n3️⃣  Applying database migrations...");
-      run("pnpm db:migrate");
-      console.log("✅ Migrations applied");
+      console.log('\n3️⃣  Applying database migrations...');
+      run('pnpm db:migrate');
+      console.log('✅ Migrations applied');
     } else {
-      console.log("\n3️⃣  Skipping migrations (--no-migrate)");
+      console.log('\n3️⃣  Skipping migrations (--no-migrate)');
     }
 
-    if (!noSeed) {
-      console.log("\n4️⃣  Seeding demo data (idempotent)...");
-      run("pnpm db:seed");
-      console.log("✅ Seed complete");
+    if (noSeed) {
+      console.log('\n4️⃣  Skipping seed (--no-seed)');
+    } else if (forceSeed) {
+      console.log('\n4️⃣  Seeding demo data (wipe + reseed)...');
+      run('pnpm --filter @travel-bug/db db:seed');
+      console.log('✅ Seed complete');
     } else {
-      console.log("\n4️⃣  Skipping seed (--no-seed)");
+      console.log('\n4️⃣  Seeding demo data only if DB is empty...');
+      run('pnpm --filter @travel-bug/db db:seed -- --if-empty');
+      console.log('✅ Seed step done');
     }
 
-    startApps("5️⃣");
+    startApps('5️⃣');
   } catch {
-    console.error("\n❌ Failed to start local stack\n");
+    console.error('\n❌ Failed to start local stack\n');
     process.exit(1);
   }
 }

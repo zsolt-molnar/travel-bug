@@ -10,8 +10,10 @@ Full mobile pipeline (versioning, secrets, splash): see project skill **`capacit
 ## Required Next config (`apps/client-app`)
 
 ```ts
-output: "export"
-images: { unoptimized: true }
+output: 'export';
+images: {
+  unoptimized: true;
+}
 ```
 
 ## Capacitor

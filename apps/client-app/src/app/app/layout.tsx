@@ -1,11 +1,7 @@
-"use client";
+'use client';
 
-import { AppShell } from "@/components/app-shell";
+import { AppShell } from '@/components/app-shell';
 
-export default function AuthenticatedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return <AppShell>{children}</AppShell>;
 }

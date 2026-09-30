@@ -1,6 +1,6 @@
 # Docs (GitHub Pages)
 
-POC flow documentation for traveler and admin/agency lives in [`index.md`](./index.md).
+[`index.md`](./index.md) presents the **current Working POC** — traveler and admin/agency product flows, with Mock vs Real status. It is an outcome-focused product picture, not an implementation changelog.
 
 ## Enable GitHub Pages
 
