@@ -4,7 +4,7 @@ B2B2C Agentic Travel OS (tour operator digital concierge).
 
 ## Docs
 
-- [`docs/`](./docs/) — **POC flows** (traveler + admin/agency, Mock vs Real). GitHub Pages: Settings → Pages → branch `main`, folder `/docs` (see [`docs/README.md`](./docs/README.md))
+- [`docs/`](./docs/) — **Product flows** (traveler + admin/agency, Mock vs Real). GitHub Pages: Settings → Pages → branch `main`, folder `/docs` (see [`docs/README.md`](./docs/README.md))
 - [`.cursor/AGENTS.md`](./.cursor/AGENTS.md) — AI agent brief, skill index, living skills policy
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — system blueprint (§8 Working POC, §9 Future)
 - Project skills: [`.cursor/skills/`](./.cursor/skills/) (committed)
@@ -17,11 +17,11 @@ pnpm install
 pnpm start:dev
 ```
 
-| App | URL |
-|-----|-----|
+| App                     | URL                   |
+| ----------------------- | --------------------- |
 | Traveler (`client-app`) | http://localhost:3000 |
-| API (`api-server`) | http://localhost:3001 |
-| Admin (`admin-portal`) | http://localhost:3002 |
+| API (`api-server`)      | http://localhost:3001 |
+| Admin (`admin-portal`)  | http://localhost:3002 |
 
 Stop everything when done:
 
@@ -38,13 +38,14 @@ Bootstraps the Working POC step-by-step:
 1. Ensure `.env` (copies from `.env.example` if missing)
 2. `docker compose up -d --wait` (Postgres + Redis)
 3. `pnpm db:migrate`
-4. `pnpm db:seed` (idempotent demo data)
+4. Seed demo data **only if the DB is empty** (does not wipe existing data)
 5. `turbo run dev` (client :3000, API :3001, admin :3002)
 
 ```bash
 pnpm start:dev
 pnpm start:dev -- --apps-only     # skip .env / Docker / migrate / seed
-pnpm start:dev -- --no-seed       # skip seed
+pnpm start:dev -- --seed          # force wipe + reseed
+pnpm start:dev -- --no-seed       # never seed (even on empty DB)
 pnpm start:dev -- --no-migrate    # skip migrations
 ```
 
@@ -67,11 +68,12 @@ pnpm stop:dev -- --volumes     # also remove Compose volumes (wipes Postgres/Red
 
 - `DATABASE_URL` / `REDIS_URL` — see `.env.example` (never commit `.env`)
 - `pnpm db:migrate` — apply Drizzle migrations
-- `pnpm db:seed` — stable demo UUIDs (operator, traveler, Paris trip, gems, docs)
+- `pnpm db:seed` — wipe + reseed stable demo UUIDs (operator, traveler, Paris trip, gems, docs)
+- `pnpm db:seed -- --if-empty` — seed only when there are no users yet
 - `pnpm db:studio` — Drizzle Studio
 
 Redis is up for future BullMQ OCR (ARCHITECTURE §9); unused in the Working POC.
 
 ## POC note
 
-Phases 1–4 = Working POC with **mock LLM** only. Real providers, OCR, and live Stripe are out of scope until §9.
+Working POC: Nest/Postgres with **JWT auth**, editable trips/gems/places, vault, message board + in-app notifications, and **mock LLM** chat only. Real providers, OCR, push, and live Stripe are out of scope until ARCHITECTURE §9. See [`docs/`](./docs/) for product flows.

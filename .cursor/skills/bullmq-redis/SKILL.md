@@ -15,9 +15,9 @@ Env: `REDIS_URL` (see `.env.example`).
 
 ## Planned queues (ARCHITECTURE.md)
 
-| Queue | Purpose | Phase |
-|-------|---------|-------|
-| `ingest-gems` | Operator gem embeddings | Phase 2 |
+| Queue          | Purpose                       | Phase   |
+| -------------- | ----------------------------- | ------- |
+| `ingest-gems`  | Operator gem embeddings       | Phase 2 |
 | `process-docs` | OCR + chunk + embed documents | Phase 3 |
 
 ## Conventions

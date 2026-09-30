@@ -5,20 +5,21 @@ description: Travel Bug Working POC (Phases 1–4) standing rules — mock LLM o
 
 # Working POC boundaries
 
-Source of truth: [`ARCHITECTURE.md`](../../ARCHITECTURE.md) §8 (POC) and §9 (future).
+Source of truth: [`ARCHITECTURE.md`](../../ARCHITECTURE.md) §8 (POC / Phase 5) and §9 (future).
 
 ## Standing rules
 
-- **Mock LLM only** through Phase 4. Use `MockLLM` / `runMockConciergeGraph` in `@travel-bug/agent-core`. No OpenAI/Anthropic keys or network calls.
+- **Mock LLM only** through Phase 5. Use `MockLLM` / `runMockConciergeGraph` in `@travel-bug/agent-core`. No OpenAI/Anthropic keys or network calls.
 - **No Next Route Handlers** in `apps/client-app` (Capacitor `output: "export"`). Chat streams from Nest `POST /chat`.
-- **Do not invent** OCR workers, Firecrawl, Auth0/NextAuth, live Stripe, offline SQLite, or gems ingest UI until §9 is explicitly started.
+- **Do not invent** OCR workers, Firecrawl, Auth0/NextAuth, live Stripe, offline SQLite, push notifications, or gems ingest UI until §9 is explicitly started.
+- **Phase 5.8:** in-app trip message board + traveler notifications (header bell). Push stays §9.
 
 ## Local ports
 
-| App | Port |
-|-----|------|
-| `client-app` | 3000 |
-| `api-server` | 3001 |
+| App            | Port |
+| -------------- | ---- |
+| `client-app`   | 3000 |
+| `api-server`   | 3001 |
 | `admin-portal` | 3002 |
 
 ```bash
@@ -34,11 +35,9 @@ pnpm --filter admin-portal dev
 
 Canonical: `packages/db/src/seed-ids.ts` (exported as `SEED_IDS` from `@travel-bug/db`).
 
-POC identity headers (until real auth):
+## Auth
 
-- `x-user-id`
-- `x-operator-id` (use literal `null` string for superadmin with no agency)
-- `x-user-role` — `superadmin` | `agency_manager` | `agency_agent` | `traveler`
+Phase 5 uses Bearer JWT (`POST /auth/login`). Demo password: `SEED_PASSWORD` / `password123`. Do not send mock `x-user-id` headers.
 
 ## Generative UI tool names (do not rename casually)
 
@@ -52,4 +51,4 @@ POC identity headers (until real auth):
 
 ## After POC (§9 order suggestion)
 
-Real LLM swap → OCR/RAG BullMQ → gems ingest UI → production auth/billing → offline/native polish.
+Real LLM swap → OCR/RAG BullMQ → gems ingest UI → production auth/billing → **push notifications** → offline/native polish.

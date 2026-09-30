@@ -17,7 +17,8 @@ description: Drizzle ORM + pgvector for packages/db in travel-bug. Use when edit
 ```bash
 pnpm db:generate   # drizzle-kit generate
 pnpm db:migrate    # drizzle-kit migrate
-pnpm db:seed       # idempotent truncate + seed (tsx src/seed.ts)
+pnpm db:seed              # truncate + seed (wipes local data)
+pnpm db:seed -- --if-empty  # seed only when users table is empty
 pnpm db:studio     # drizzle-kit studio
 pnpm --filter @travel-bug/db build   # emit dist/ for Nest imports
 ```
@@ -28,7 +29,19 @@ pnpm --filter @travel-bug/db build   # emit dist/ for Nest imports
 - Always ensure `CREATE EXTENSION IF NOT EXISTS vector` runs before vector columns (docker init + migration bootstrap).
 - Export tables/types from `@travel-bug/db`; do not duplicate schema in apps.
 - Use `DATABASE_URL` from env; never hardcode credentials.
-- **Stable demo IDs:** `packages/db/src/seed-ids.ts` → `SEED_IDS` (traveler, operator, Paris trip, gems, docs, invite).
-- POC schema extras (Phase 4): `users.name`, `trips.operator_id`, `trip_travelers`, `invites`, `user_documents.title`, `itinerary_items.document_id`.
-- Roles string values: `superadmin` | `agency_manager` | `agency_agent` | `traveler`.
+- **Stable demo IDs:** `packages/db/src/seed-ids.ts` → `SEED_IDS` + `SEED_PASSWORD` (`password123`).
 - Nest imports compiled `dist/`; rebuild db package after schema changes before starting api-server.
+
+## Phase 5 schema notes
+
+- `users.passwordHash` (bcryptjs in seed / Nest auth)
+- `traveler_profiles` 1:1 with traveler users
+- `places` tree: `kind` country | region | city | area; `parentId` self-FK
+- `trips.title`, `trips.destinationPlaceId`
+- `hidden_gems.operatorId` **nullable** (null = public); `placeId` required
+- Gem tenant filter: `(operator_id IS NULL OR operator_id = :operatorId)`
+- `itinerary_days.placeId` optional day area; `itinerary_items.sortOrder`; `documentId` FK → `user_documents`
+- `user_documents.extractedData` jsonb (OCR later)
+- `trip_messages` — agency one-way board (`kind` alert|info|notice)
+- `notifications` — in-app traveler inbox (`type` trip_message|vault_document; `readAt`)
+- Roles: `superadmin` | `agency_manager` | `agency_agent` | `traveler`

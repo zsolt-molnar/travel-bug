@@ -8,7 +8,6 @@ config({ path: resolve(__dirname, '../../../../.env') });
 @Injectable()
 export class DbService implements OnModuleDestroy {
   readonly db: Database;
-  private readonly clientClose?: () => Promise<void>;
 
   constructor() {
     const url = process.env.DATABASE_URL;
@@ -19,6 +18,6 @@ export class DbService implements OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    // postgres.js clients exit with process; no explicit close required for POC
+    await this.db.$client.end({ timeout: 5 });
   }
 }

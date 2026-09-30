@@ -1,42 +1,49 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createTravelerSession, setSession } from "@/lib/auth";
-import { SEED_IDS } from "@/lib/types";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { sessionFromAuth, setSession } from '@/lib/auth';
+import { apiPost } from '@/lib/api';
+import type { AuthResponse } from '@/lib/types';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("traveler@travelbug.demo");
-  const [password, setPassword] = useState("demo");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('solo@travelbug.demo');
+  const [password, setPassword] = useState('password123');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) {
-      setError("Email is required.");
+    if (!email.trim() || !password) {
+      setError('Email and password are required.');
       return;
     }
-    setSession(
-      createTravelerSession({
+    setError('');
+    setLoading(true);
+    try {
+      const res = await apiPost<AuthResponse>('/auth/login', {
         email: email.trim(),
-        name: "Demo Traveler",
-        plan: "agency_invite",
-        operatorId: SEED_IDS.operator,
-      }),
-    );
-    router.push("/app");
+        password,
+      });
+      setSession(sessionFromAuth(res));
+      router.push('/app');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -47,9 +54,7 @@ export default function LoginPage() {
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Welcome back</CardTitle>
-          <CardDescription>
-            Mock login — any password works for the POC.
-          </CardDescription>
+          <CardDescription>Demo: solo@travelbug.demo / password123</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
@@ -74,14 +79,14 @@ export default function LoginPage() {
               />
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" className="w-full">
-              Log in
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing in…' : 'Log in'}
             </Button>
           </form>
         </CardContent>
       </Card>
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        New here?{" "}
+        New here?{' '}
         <Link href="/register" className="font-medium text-primary underline">
           Create an account
         </Link>

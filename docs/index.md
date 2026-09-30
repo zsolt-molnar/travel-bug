@@ -1,10 +1,10 @@
 ---
 layout: default
-title: POC Flows
-description: Traveler and admin/agency end-to-end flows for Travel Bug Working POC (Phases 1–4), with Mock vs Real callouts.
+title: Product flows
+description: Traveler and admin/agency flows for Travel Bug Working POC — what works today, with Mock vs Real callouts.
 ---
 
-Working POC snapshot (Phases 1–4). Product blueprint: [`ARCHITECTURE.md`](../ARCHITECTURE.md) in the repo root (§8 in scope, §9 out). On GitHub Pages that relative link only works from the repository tree; this page documents **what is implemented today**.
+B2B2C Agentic Travel OS — tour operators run trips in the admin portal; travelers use the mobile-shaped client app. NestJS API + Postgres power data; chat uses a MockLLM. Product blueprint: [`ARCHITECTURE.md`](../ARCHITECTURE.md) in the repo root (Working POC in §8; deferred work in §9). On GitHub Pages that relative link only works from the repository tree; this page is **what the product does today**.
 
 ## Legend — Mock vs Real
 
@@ -12,17 +12,19 @@ Working POC snapshot (Phases 1–4). Product blueprint: [`ARCHITECTURE.md`](../A
 
 **Real** — NestJS endpoint hits Postgres (or writes a file under `apps/api-server/uploads/` for vault).
 
-**Mock** — Client-only UI, `localStorage` identity, hardcoded invite codes, MockLLM responses, or SWR fallback data when the API is down.
+**Mock** — Client-only UI, MockLLM responses, or demo Stripe checkout with no payment provider.
 
-**Partial** — Real transport or read path mixed with mock auth, mock LLM, or non-persisted UI actions.
+**Partial** — Real transport or persistence mixed with MockLLM or non-production billing.
 
 </div>
 
-| App | URL |
-|-----|-----|
+| App                     | URL                   |
+| ----------------------- | --------------------- |
 | Traveler (`client-app`) | http://localhost:3000 |
-| API (`api-server`) | http://localhost:3001 |
-| Admin (`admin-portal`) | http://localhost:3002 |
+| API (`api-server`)      | http://localhost:3001 |
+| Admin (`admin-portal`)  | http://localhost:3002 |
+
+Local bootstrap: `pnpm start:dev` (Docker Postgres + Redis → migrate → seed-if-empty → apps). Demo password for all seeded users: **`password123`**.
 
 ---
 
@@ -36,180 +38,203 @@ flowchart LR
   postgres[(Postgres)]
   mockLlm[MockLLM agent-core]
 
-  travelerApp -->|identity headers| nestApi
-  adminApp -->|identity headers| nestApi
+  travelerApp -->|Bearer JWT| nestApi
+  adminApp -->|Bearer JWT| nestApi
   nestApi --> postgres
   nestApi --> mockLlm
   adminApp -->|invite register link| travelerApp
+  adminApp -->|trip message board| nestApi
+  nestApi -->|in-app notifications| travelerApp
 ```
 
-| Hop | Status |
-|-----|--------|
-| Traveler / admin → Nest REST & chat | <span class="badge badge-real">Real</span> HTTP |
-| Nest → Postgres (trips, vault, itinerary, agencies) | <span class="badge badge-real">Real</span> |
-| Nest → chat graph | <span class="badge badge-partial">Partial</span> Real SSE + <span class="badge badge-mock">Mock</span> LLM |
-| Identity / login / Stripe / invite redeem | <span class="badge badge-mock">Mock</span> |
+| Hop                                                        | Status                                                                                                     |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Traveler / admin → Nest REST & chat                        | <span class="badge badge-real">Real</span> HTTP + Bearer JWT                                               |
+| Nest → Postgres (trips, vault, itinerary, agencies, board) | <span class="badge badge-real">Real</span>                                                                 |
+| Nest → chat graph                                          | <span class="badge badge-partial">Partial</span> Real SSE + <span class="badge badge-mock">Mock</span> LLM |
+| Registration Path A (monthly / Stripe UI)                  | <span class="badge badge-mock">Mock</span> — no live Stripe                                                |
+| Invite Path B (`register-invite` + DB code)                | <span class="badge badge-real">Real</span>                                                                 |
 
 ---
 
-## Traveler flow
+## Traveler product
 
 ```mermaid
 flowchart TD
   landing[Landing]
   login[Login]
   register[Register]
-  session[localStorage session]
+  session[JWT session]
   appShell[App shell]
-  trips[Trips API]
-  vault[Vault API]
-  itin[Itinerary API]
+  home[Dashboard]
+  trips[Trips]
+  vault[Vault]
+  notifs[Notifications]
   chat[Chat SSE]
   pg[(Postgres)]
   mockGraph[MockLLM graph]
 
   landing --> login
   landing --> register
-  register -->|Path A or B| session
-  login -->|any password| session
+  register --> session
+  login --> session
   session --> appShell
+  appShell --> home
   appShell --> trips
   appShell --> vault
-  appShell --> itin
+  appShell --> notifs
   appShell --> chat
+  home --> pg
   trips --> pg
   vault --> pg
-  itin --> pg
+  notifs --> pg
   chat --> mockGraph
 ```
 
 ### Entry & auth
 
-| Step | What happens | Status |
-|------|----------------|--------|
-| Landing `/` | Marketing + CTAs to register/login | <span class="badge badge-mock">Mock</span> static UI |
-| Login `/login` | Any non-empty email + any password | <span class="badge badge-mock">Mock</span> |
-| Register Path A | “Monthly” + mock Stripe checkout | <span class="badge badge-mock">Mock</span> — no Nest, no live Stripe |
-| Register Path B | Invite code checked in the browser | <span class="badge badge-mock">Mock</span> — codes `PARIS-VIP`, `AGENCY2026` only |
-| Session | `localStorage` key `tb:session:v1` | <span class="badge badge-mock">Mock</span> — `userId` always seed traveler `…000010` |
+| Step            | What happens                                          | Status                                                             |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------ |
+| Landing `/`     | Marketing + CTAs to register / login                  | <span class="badge badge-mock">Mock</span> static UI               |
+| Login `/login`  | Email + password → `POST /auth/login`                 | <span class="badge badge-real">Real</span> JWT + bcrypt            |
+| Register Path A | “Monthly” signup UI                                   | <span class="badge badge-mock">Mock</span> Stripe checkout UI only |
+| Register Path B | Invite code → `POST /auth/register-invite`            | <span class="badge badge-real">Real</span>                         |
+| Signup          | `POST /auth/signup` (independent traveler)            | <span class="badge badge-real">Real</span>                         |
+| Session         | `localStorage` `tb:session:v1` (`accessToken` + user) | <span class="badge badge-real">Real</span>                         |
 
-API calls send `x-user-id`, `x-operator-id`, `x-user-role` from that session (see [Identity](#identity-headers)).
+API calls send `Authorization: Bearer <token>` only.
 
 ### In-app screens
 
-| Screen | Route | Status | Notes |
-|--------|-------|--------|-------|
-| Home | `/app` | <span class="badge badge-partial">Partial</span> | `GET /trips` <span class="badge badge-real">Real</span>; SWR fallback `mockTrips`; alerts hardcoded |
-| Trips list / create | `/app/trips` | <span class="badge badge-real">Real</span> | `GET/POST /trips`; create may optimistically keep local trip on failure |
-| Trip detail header | `/app/trips/[tripId]` | <span class="badge badge-mock">Mock</span> | Destination/dates from `mockTrips`, not API trip row |
-| Itinerary timeline | same | <span class="badge badge-partial">Partial</span> | `GET /itinerary/:tripId` <span class="badge badge-real">Real</span> read; initial UI uses `mockTimeline` |
-| Attach from vault | same | <span class="badge badge-mock">Mock</span> | Local React state + `mockDocuments` picker — not persisted |
-| Vault list / upload | `/app/vault` | <span class="badge badge-real">Real</span> | `GET/POST /vault/documents`; file on disk under `uploads/`; **no OCR** |
-| Chat | `/app/chat` | <span class="badge badge-partial">Partial</span> | Nest SSE <span class="badge badge-real">Real</span>; MockLLM tools <span class="badge badge-mock">Mock</span> (no DB/RAG) |
+| Screen        | Route                       | Status                                           | Notes                                                                                                                                  |
+| ------------- | --------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Home          | `/app`                      | <span class="badge badge-real">Real</span>       | Upcoming trips, day plan, documents you’ll need (each with show more / less); attachment badge on day stops when a vault doc is linked |
+| Trips list    | `/app/trips`                | <span class="badge badge-real">Real</span>       | Create personal trips; delete personal only; agency trips labeled                                                                      |
+| Trip detail   | `/app/trips/detail?tripId=` | <span class="badge badge-real">Real</span>       | Static-export safe query param. Personal: full edit. Agency: read-only + **Copy to my trips** + message board (`?panel=board`)         |
+| Vault         | `/app/vault`                | <span class="badge badge-real">Real</span>       | Upload / Save / delete; attach docs to day items from trip detail; deep link `?docId=`                                                 |
+| Notifications | `/app/notifications`        | <span class="badge badge-real">Real</span>       | Header bell + unread count; trip board + agency vault posts; mark one / mark all read                                                  |
+| Chat          | `/app/chat`                 | <span class="badge badge-partial">Partial</span> | Nest SSE <span class="badge badge-real">Real</span>; MockLLM tools <span class="badge badge-mock">Mock</span> (no OCR/RAG)             |
+
+**Personal vs agency trips:** personal trips (`operatorId` null) are editable by the traveler. Agency-managed trips are view-only; travelers copy them to edit. Vault documents on agency trips stay with the agency trip and are duplicated onto the copy.
 
 ### Chat tools (MockLLM)
 
-| Tool | Trigger keywords (approx.) | Status |
-|------|----------------------------|--------|
-| `showTicket` | ticket / museum / louvre / pass | <span class="badge badge-mock">Mock</span> payload |
-| `generateItineraryTimeline` | plan / itinerary / timeline / tomorrow | <span class="badge badge-mock">Mock</span> payload |
+| Tool                        | Role                                | Status                                             |
+| --------------------------- | ----------------------------------- | -------------------------------------------------- |
+| `showTicket`                | Ticket / pass style generative card | <span class="badge badge-mock">Mock</span> payload |
+| `generateItineraryTimeline` | Timeline-style generative card      | <span class="badge badge-mock">Mock</span> payload |
 
-Stream path: `useChat` → `POST /chat` → `runMockConciergeGraph` in `@travel-bug/agent-core`. No Next Route Handlers in `client-app` (Capacitor static export).
+Stream path: `useChat` → `POST /chat` → MockLLM graph in `@travel-bug/agent-core`. No Next Route Handlers in `client-app` (Capacitor static export).
 
 ---
 
-## Admin / agency flow
+## Admin / agency product
 
 ```mermaid
 flowchart TD
-  admin[Admin role switcher]
-  agencies[Agencies API]
-  staff[Staff API]
-  agencyTrips[Agency trips API]
-  clients[Trip clients API]
-  inviteRow[invites row]
+  login[Admin login JWT]
+  agencies[Agencies]
+  places[Places]
+  gems[Gems]
+  trips[Trips]
+  board[Message board]
+  clients[Trip travelers]
+  vault[Traveler vault]
+  invite[Invite link]
   register[Traveler register]
   pg[(Postgres)]
 
-  admin --> agencies
-  admin --> staff
-  admin --> agencyTrips
-  admin --> clients
+  login --> agencies
+  login --> places
+  login --> gems
+  login --> trips
+  trips --> board
+  trips --> clients
+  clients --> vault
+  clients --> invite
+  invite -->|code| register
   agencies --> pg
-  staff --> pg
-  agencyTrips --> pg
-  clients --> pg
-  clients --> inviteRow
-  inviteRow -->|copy invite link| register
+  places --> pg
+  gems --> pg
+  trips --> pg
+  board --> pg
+  vault --> pg
 ```
 
 ### Auth & roles
 
-| Step | Status | Notes |
-|------|--------|-------|
-| Login page | <span class="badge badge-mock">Mock</span> | None — sidebar **Viewing as** switcher |
-| Role persistence | <span class="badge badge-mock">Mock</span> | `localStorage` `tb:admin-role:v1` |
-| Demo identities | <span class="badge badge-mock">Mock</span> | Hardcoded seed UUIDs in `admin-api.ts` |
+| Step          | Status                                     | Notes                                                          |
+| ------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| Login         | <span class="badge badge-real">Real</span> | `/login` → `POST /auth/login`; token in `tb:admin-token:v1`    |
+| Authorization | <span class="badge badge-real">Real</span> | Nest `JwtAuthGuard` + `RolesGuard`; UI hides tabs by role only |
 
-| Role | Nav | Can do (API) |
-|------|-----|----------------|
-| `superadmin` | Dashboard, Agencies, Trips | List/create agencies; list all trips; view clients. **Cannot** create trips/staff/clients |
-| `agency_manager` | Dashboard, Trips, Staff | Staff list/create; trips list/create; clients list/add |
-| `agency_agent` | Dashboard, Trips | Trips list/create; clients list/add (no Staff nav) |
-
-RBAC is enforced on Nest with `@Roles` + header `x-user-role` (<span class="badge badge-partial">Partial</span> — real guards, mock trust of headers).
+| Role             | Typical nav                                              | Can do                                                                |
+| ---------------- | -------------------------------------------------------- | --------------------------------------------------------------------- |
+| `superadmin`     | Dashboard, Agencies, Places, Trips, Gems, Staff, Clients | Platform operators, places CRUD, all agency trips, gems               |
+| `agency_manager` | Dashboard, Places, Trips, Gems, Staff, Clients           | Staff, trips, clients, gems for operator, message board, vault upload |
+| `agency_agent`   | Dashboard, Places, Trips, Gems, Clients                  | Trips, clients, gems browse/use, message board, vault upload          |
 
 ### Agency operations
 
-| Action | API | Status |
-|--------|-----|--------|
-| List / create agencies | `GET/POST /agencies` | <span class="badge badge-real">Real</span> — create inserts `operators` + manager `users` |
-| List / create staff | `GET/POST /agencies/staff` | <span class="badge badge-real">Real</span> — create is immediate user insert, not email invite |
-| List / create trips | `GET/POST /agencies/trips` | <span class="badge badge-real">Real</span> — no edit/delete |
-| List / add clients | `GET/POST /agencies/trips/:tripId/clients` | <span class="badge badge-real">Real</span> |
-| Existing user → trip | `trip_travelers` insert | <span class="badge badge-real">Real</span> |
-| Unknown email → invite | `invites` + code `INVITE-…` | <span class="badge badge-real">Real</span> DB row |
-| Traveler redeems invite | `/register?code=` | <span class="badge badge-mock">Mock</span> — only hardcoded `PARIS-VIP` / `AGENCY2026`; **API `INVITE-…` codes are not redeemed** |
+| Action                     | API / UI                                     | Status                                                                |
+| -------------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| Agencies                   | `GET/POST /agencies`                         | <span class="badge badge-real">Real</span> — superadmin               |
+| Places tree                | `GET/POST/PATCH/DELETE /places`              | <span class="badge badge-real">Real</span> — superadmin write         |
+| Hidden gems                | `GET/POST/PATCH/DELETE /gems`                | <span class="badge badge-real">Real</span> — tenant + place scoped    |
+| Trips list / create / edit | `/agencies/trips`                            | <span class="badge badge-real">Real</span> — title, dates, itinerary  |
+| Message board              | `GET/POST /trips/:tripId/messages`           | <span class="badge badge-real">Real</span> — one-way to travelers     |
+| Trip travelers             | `GET/POST /agencies/trips/:tripId/clients`   | <span class="badge badge-real">Real</span> — paginated + search       |
+| Per-traveler vault         | `/trips/[id]/travelers/[userId]` + vault API | <span class="badge badge-real">Real</span> — upload notifies traveler |
+| Invite unknown email       | `invites` row + client register link         | <span class="badge badge-real">Real</span>                            |
 
-Trip edit, itinerary edit, and gems ingest UI are **not built** for agencies.
-
----
-
-## Identity headers
-
-Entire auth model is <span class="badge badge-mock">Mock</span> until ARCHITECTURE §9.
-
-| Header | Purpose | Default if missing |
-|--------|---------|-------------------|
-| `x-user-id` | Acting user UUID | Seed traveler |
-| `x-operator-id` | Agency / operator UUID; literal `null` for superadmin | Seed operator |
-| `x-user-role` | `superadmin` \| `agency_manager` \| `agency_agent` \| `traveler` | `traveler` |
-
-Implemented in `apps/api-server/src/auth/identity.ts` (`IdentityGuard` as app guard).
+Hidden gems visibility: `(operator_id IS NULL OR operator_id = :agency)` plus place subtree. Day items can focus a place; add-from-gem respects that scope.
 
 ---
 
-## Key seed IDs
+## Auth model
 
-From `packages/db/src/seed-ids.ts` (stable demo UUIDs):
-
-| Key | Value |
-|-----|--------|
-| operator | `00000000-0000-4000-8000-000000000001` |
-| traveler | `…000010` |
-| trip (Paris) | `…000020` |
-| itinerary / day1 / day2 | `…000021` / `…022` / `…023` |
-| docs passport / insurance / louvre | `…031` / `…032` / `…033` |
-| invite | `…050` · code **`PARIS-VIP`** |
-| Demo login email | `traveler@travelbug.demo` |
-| Client-only invite (not in DB) | `AGENCY2026` |
+| Piece            | Detail                                                           |
+| ---------------- | ---------------------------------------------------------------- |
+| Transport        | `Authorization: Bearer <jwt>`                                    |
+| Claims           | `sub`, `email`, `role`, `operatorId`                             |
+| Roles            | `superadmin` \| `agency_manager` \| `agency_agent` \| `traveler` |
+| Password         | bcrypt hashes in `users.password_hash`                           |
+| Traveler session | `tb:session:v1`                                                  |
+| Admin session    | `tb:admin-token:v1` + `tb:admin-user:v1`                         |
 
 ---
 
-## Not in this POC (ARCHITECTURE §9)
+## Try the demo
 
-- Real auth (Auth0 / NextAuth / passwords)
-- Live Stripe; invite redeem API that consumes DB `invites` and links traveler → trip
+Seeded via `pnpm db:seed` (stable UUIDs in `packages/db/src/seed-ids.ts`). Password for all: **`password123`**.
+
+| Who                  | Email                       | Notes                                  |
+| -------------------- | --------------------------- | -------------------------------------- |
+| Superadmin           | `superadmin@travelbug.demo` | Admin portal                           |
+| Agency manager       | `manager@wanderlust.pro`    | Wanderlust Pro                         |
+| Agency agent         | `agent@wanderlust.pro`      | Wanderlust Pro                         |
+| Independent traveler | `solo@travelbug.demo`       | Owns Solo Paris Escape                 |
+| Agency client        | `client@wanderlust.pro`     | Paris VIP + Tokyo Week; board + notifs |
+| Legacy traveler id   | `traveler@travelbug.demo`   | Seeded user                            |
+
+| Demo artifact | Value / tip                                 |
+| ------------- | ------------------------------------------- |
+| Invite code   | `PARIS-VIP` (pending invite in DB)          |
+| Agency trips  | Wanderlust Paris VIP, Wanderlust Tokyo Week |
+| Personal trip | Solo Paris Escape                           |
+| Message board | Tokyo welcome + typhoon alert (seeded)      |
+| Vault example | Agency boarding pass on Paris VIP           |
+
+---
+
+## Not in this POC
+
+These are out of the Working POC (see ARCHITECTURE §9):
+
+- Device **push** notifications (in-app notifications and the header bell are in scope)
 - Real LLM providers / embeddings; OCR → `document_chunks` / RAG chat
-- Agency trip edit / delete; itinerary create/update UI; gems ingest
-- Offline SQLite / offline maps; operator brand theming driven by `brand_config`
+- Live Stripe Checkout
+- Hosted IdP (Auth0 / NextAuth / cookie sessions)
+- Capacitor offline SQLite / offline maps
+- Operator brand theming driven by `brand_config`
+- Generative UI beyond ticket + timeline cards

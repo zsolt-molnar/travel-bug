@@ -7,8 +7,11 @@ description: Travel multi-tenant security and itinerary/RAG rules. Use when quer
 
 ## Tenant Isolation Rules
 
-1. Every Postgres query touching `hidden_gems` MUST include `WHERE operator_id = :operatorId`.
+1. Every Postgres query touching `hidden_gems` MUST filter visibility as
+   `(operator_id IS NULL OR operator_id = :operatorId)` (public gems + caller's operator).
+   Never return another operator's private gems.
 2. Every document search against `document_chunks` MUST include `WHERE user_id = :userId`.
+3. Place-scoped gem catalogs: resolve place subtree (place + descendants), then apply rule 1.
 
 ## Itinerary Generation Rules
 

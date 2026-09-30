@@ -103,14 +103,14 @@ See [VERSIONING.md](../../../apps/client-app/docs/VERSIONING.md).
 
 Install/keep aligned on Capacitor **8.x**:
 
-| Plugin | Purpose |
-|--------|---------|
-| `@capacitor/core` / `cli` / `ios` / `android` | Runtime + platforms |
-| `@capacitor/app` | Lifecycle |
-| `@capacitor/keyboard` | Keyboard resize / events |
-| `@capacitor/status-bar` | Status bar style |
-| `@capacitor/splash-screen` | Splash |
-| `@capacitor/assets` (dev) | Icon/splash generation |
+| Plugin                                        | Purpose                  |
+| --------------------------------------------- | ------------------------ |
+| `@capacitor/core` / `cli` / `ios` / `android` | Runtime + platforms      |
+| `@capacitor/app`                              | Lifecycle                |
+| `@capacitor/keyboard`                         | Keyboard resize / events |
+| `@capacitor/status-bar`                       | Status bar style         |
+| `@capacitor/splash-screen`                    | Splash                   |
+| `@capacitor/assets` (dev)                     | Icon/splash generation   |
 
 Add camera, push (FCM), filesystem, etc. only when a feature needs them — follow Capawesome skills for plugin patterns.
 
@@ -128,7 +128,9 @@ Prefer CSS `env(safe-area-inset-*)` (already used in traveler shell / `globals.c
 
 ```typescript
 // capacitor.config.ts plugins
-SystemBars: { insetsHandling: 'disable' }
+SystemBars: {
+  insetsHandling: 'disable';
+}
 ```
 
 ## Keyboard
@@ -147,8 +149,12 @@ Listen only on native:
 
 ```typescript
 if (Capacitor.isNativePlatform()) {
-  Keyboard.addListener('keyboardDidShow', () => { /* ... */ });
-  Keyboard.addListener('keyboardDidHide', () => { /* ... */ });
+  Keyboard.addListener('keyboardDidShow', () => {
+    /* ... */
+  });
+  Keyboard.addListener('keyboardDidHide', () => {
+    /* ... */
+  });
 }
 ```
 
@@ -222,13 +228,13 @@ pnpm build-mobile
 
 ## Key Files
 
-| Purpose | Path |
-|---------|------|
-| Capacitor config | `apps/client-app/capacitor.config.ts` |
-| Mobile build | `apps/client-app/scripts/build-mobile.mjs` |
-| Env setup/check | `apps/client-app/scripts/setup-mobile-env.mjs`, `check-mobile-env.mjs` |
-| Version sync/bump | `apps/client-app/scripts/sync-version.mjs`, `bump-version.mjs` |
-| Secrets example | `apps/client-app/.env.mobile-secrets.example` |
-| Version docs | `apps/client-app/docs/VERSIONING.md` |
-| Splash assets | `apps/client-app/assets/` |
-| iOS / Android | `apps/client-app/ios/`, `android/` |
+| Purpose           | Path                                                                   |
+| ----------------- | ---------------------------------------------------------------------- |
+| Capacitor config  | `apps/client-app/capacitor.config.ts`                                  |
+| Mobile build      | `apps/client-app/scripts/build-mobile.mjs`                             |
+| Env setup/check   | `apps/client-app/scripts/setup-mobile-env.mjs`, `check-mobile-env.mjs` |
+| Version sync/bump | `apps/client-app/scripts/sync-version.mjs`, `bump-version.mjs`         |
+| Secrets example   | `apps/client-app/.env.mobile-secrets.example`                          |
+| Version docs      | `apps/client-app/docs/VERSIONING.md`                                   |
+| Splash assets     | `apps/client-app/assets/`                                              |
+| iOS / Android     | `apps/client-app/ios/`, `android/`                                     |

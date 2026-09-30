@@ -1,5 +1,5 @@
-import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
-import { mockLlmComplete, type MockAgentResult } from "./mock-llm";
+import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
+import { mockLlmComplete, type MockAgentResult } from './mock-llm';
 
 /**
  * LangGraph scaffold with Supervisor → specialist nodes.
@@ -10,7 +10,7 @@ const GraphState = Annotation.Root({
   message: Annotation<string>,
   userId: Annotation<string | undefined>,
   operatorId: Annotation<string | undefined>,
-  route: Annotation<MockAgentResult["route"] | undefined>,
+  route: Annotation<MockAgentResult['route'] | undefined>,
   result: Annotation<MockAgentResult | undefined>,
 });
 
@@ -37,34 +37,34 @@ function generalNode(state: typeof GraphState.State) {
 
 function routeFromSupervisor(state: typeof GraphState.State) {
   switch (state.route) {
-    case "itinerary":
-      return "itineraryPlanner";
-    case "document":
-      return "documentAgent";
-    case "curator":
-      return "curator";
+    case 'itinerary':
+      return 'itineraryPlanner';
+    case 'document':
+      return 'documentAgent';
+    case 'curator':
+      return 'curator';
     default:
-      return "general";
+      return 'general';
   }
 }
 
 const graph = new StateGraph(GraphState)
-  .addNode("supervisor", supervisorNode)
-  .addNode("itineraryPlanner", itineraryPlannerNode)
-  .addNode("documentAgent", documentAgentNode)
-  .addNode("curator", curatorNode)
-  .addNode("general", generalNode)
-  .addEdge(START, "supervisor")
-  .addConditionalEdges("supervisor", routeFromSupervisor, {
-    itineraryPlanner: "itineraryPlanner",
-    documentAgent: "documentAgent",
-    curator: "curator",
-    general: "general",
+  .addNode('supervisor', supervisorNode)
+  .addNode('itineraryPlanner', itineraryPlannerNode)
+  .addNode('documentAgent', documentAgentNode)
+  .addNode('curator', curatorNode)
+  .addNode('general', generalNode)
+  .addEdge(START, 'supervisor')
+  .addConditionalEdges('supervisor', routeFromSupervisor, {
+    itineraryPlanner: 'itineraryPlanner',
+    documentAgent: 'documentAgent',
+    curator: 'curator',
+    general: 'general',
   })
-  .addEdge("itineraryPlanner", END)
-  .addEdge("documentAgent", END)
-  .addEdge("curator", END)
-  .addEdge("general", END);
+  .addEdge('itineraryPlanner', END)
+  .addEdge('documentAgent', END)
+  .addEdge('curator', END)
+  .addEdge('general', END);
 
 const compiled = graph.compile();
 
@@ -80,8 +80,8 @@ export async function runMockConciergeGraph(input: {
   });
   return (
     out.result ?? {
-      route: "general",
-      text: "No response.",
+      route: 'general',
+      text: 'No response.',
       tools: [],
     }
   );

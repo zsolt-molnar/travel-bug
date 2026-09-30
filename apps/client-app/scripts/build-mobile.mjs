@@ -36,7 +36,9 @@ function main() {
     const epochStart = Math.floor(new Date('2020-01-01T00:00:00Z').getTime() / 1000);
     const now = Math.floor(Date.now() / 1000);
     const buildNumber = now - epochStart;
-    console.log(`0️⃣  Generated build number: ${buildNumber} (seconds since 2020-01-01 UTC)`);
+    console.log(
+      `0️⃣  Generated build number: ${buildNumber} (seconds since 2020-01-01 UTC)`,
+    );
 
     const packageJsonPath = resolve(rootDir, 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
@@ -68,7 +70,9 @@ function main() {
     execSync('rm -rf out', { stdio: 'inherit', cwd: rootDir });
 
     // Step 4: Next.js static export (production env)
-    console.log(`\n4️⃣  Building Next.js static export (${mode} secrets → .env.production.local)...`);
+    console.log(
+      `\n4️⃣  Building Next.js static export (${mode} secrets → .env.production.local)...`,
+    );
     execSync('pnpm exec next build', {
       stdio: 'inherit',
       cwd: rootDir,

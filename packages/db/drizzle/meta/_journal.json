@@ -15,6 +15,20 @@
       "when": 1790694093973,
       "tag": "0001_eminent_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790779879782,
+      "tag": "0002_giant_wong",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790798681496,
+      "tag": "0003_supreme_shriek",
+      "breakpoints": true
     }
   ]
 }

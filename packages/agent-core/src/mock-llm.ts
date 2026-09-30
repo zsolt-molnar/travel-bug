@@ -4,17 +4,18 @@
 
 export type MockToolCall =
   | {
-      name: "showTicket";
+      name: 'showTicket';
       args: {
         title: string;
         venue: string;
         datetime: string;
         code?: string;
         documentId?: string;
+        fileUrl?: string;
       };
     }
   | {
-      name: "generateItineraryTimeline";
+      name: 'generateItineraryTimeline';
       args: {
         tripDestination: string;
         days: Array<{
@@ -39,7 +40,7 @@ export type MockToolCall =
 export interface MockAgentResult {
   text: string;
   tools: MockToolCall[];
-  route: "itinerary" | "document" | "curator" | "general";
+  route: 'itinerary' | 'document' | 'curator' | 'general';
 }
 
 export interface MockAgentInput {
@@ -53,23 +54,24 @@ export function mockLlmComplete(message: string): MockAgentResult {
   const lower = message.toLowerCase();
 
   if (
-    lower.includes("ticket") ||
-    lower.includes("museum") ||
-    lower.includes("louvre") ||
-    lower.includes("pass")
+    lower.includes('ticket') ||
+    lower.includes('museum') ||
+    lower.includes('louvre') ||
+    lower.includes('pass')
   ) {
     return {
-      route: "document",
+      route: 'document',
       text: "Here's your museum pass for tomorrow.",
       tools: [
         {
-          name: "showTicket",
+          name: 'showTicket',
           args: {
-            title: "Louvre Museum Pass",
-            venue: "Musée du Louvre",
-            datetime: "Tomorrow · 10:00",
-            code: "LV-88421",
-            documentId: "00000000-0000-4000-8000-000000000033",
+            title: 'Louvre Museum Pass',
+            venue: 'Musée du Louvre',
+            datetime: 'Tomorrow · 10:00',
+            code: 'LV-88421',
+            documentId: '00000000-0000-4000-8000-000000000033',
+            fileUrl: 'http://localhost:3001/uploads/seed-louvre.pdf',
           },
         },
       ],
@@ -77,52 +79,52 @@ export function mockLlmComplete(message: string): MockAgentResult {
   }
 
   if (
-    lower.includes("plan") ||
-    lower.includes("tomorrow") ||
-    lower.includes("itinerary") ||
-    lower.includes("timeline")
+    lower.includes('plan') ||
+    lower.includes('tomorrow') ||
+    lower.includes('itinerary') ||
+    lower.includes('timeline')
   ) {
     return {
-      route: "itinerary",
+      route: 'itinerary',
       text: "Tomorrow's plan — here's a timeline card.",
       tools: [
         {
-          name: "generateItineraryTimeline",
+          name: 'generateItineraryTimeline',
           args: {
-            tripDestination: "Paris",
+            tripDestination: 'Paris',
             days: [
               {
                 dayNumber: 2,
-                date: "2026-10-13",
-                theme: "Art & passages",
+                date: '2026-10-13',
+                theme: 'Art & passages',
                 items: [
                   {
-                    id: "tl-3",
+                    id: 'tl-3',
                     dayNumber: 2,
-                    date: "2026-10-13",
-                    timeSlot: "10:00",
-                    itemType: "activity",
-                    title: "Louvre morning visit",
-                    locationName: "Louvre Museum",
-                    documentId: "00000000-0000-4000-8000-000000000033",
+                    date: '2026-10-13',
+                    timeSlot: '10:00',
+                    itemType: 'activity',
+                    title: 'Louvre morning visit',
+                    locationName: 'Louvre Museum',
+                    documentId: '00000000-0000-4000-8000-000000000033',
                   },
                   {
-                    id: "tl-4",
+                    id: 'tl-4',
                     dayNumber: 2,
-                    date: "2026-10-13",
-                    timeSlot: "16:00",
-                    itemType: "hidden_gem",
-                    title: "Covered Passage des Panoramas",
-                    locationName: "2nd Arrondissement",
+                    date: '2026-10-13',
+                    timeSlot: '16:00',
+                    itemType: 'hidden_gem',
+                    title: 'Covered Passage des Panoramas',
+                    locationName: '2nd Arrondissement',
                   },
                   {
-                    id: "tl-5",
+                    id: 'tl-5',
                     dayNumber: 2,
-                    date: "2026-10-13",
-                    timeSlot: "20:00",
-                    itemType: "drink",
-                    title: "Natural wine bar",
-                    locationName: "Septime Cave",
+                    date: '2026-10-13',
+                    timeSlot: '20:00',
+                    itemType: 'drink',
+                    title: 'Natural wine bar',
+                    locationName: 'Septime Cave',
                   },
                 ],
               },
@@ -133,16 +135,16 @@ export function mockLlmComplete(message: string): MockAgentResult {
     };
   }
 
-  if (lower.includes("gem") || lower.includes("hidden") || lower.includes("local")) {
+  if (lower.includes('gem') || lower.includes('hidden') || lower.includes('local')) {
     return {
-      route: "curator",
+      route: 'curator',
       text: "From your agency's curated list: Passage des Panoramas is a quiet covered passage nearby.",
       tools: [],
     };
   }
 
   return {
-    route: "general",
+    route: 'general',
     text: "Ask about your Louvre ticket or tomorrow's plan to see generative UI tools.",
     tools: [],
   };

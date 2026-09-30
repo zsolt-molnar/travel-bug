@@ -22,7 +22,7 @@ Mock LLM only. Real providers / OCR / live Stripe = ARCHITECTURE §9.
 - Follow installed project skills for the area you touch; see skill index in `.cursor/AGENTS.md`.
 - Never commit secrets, `.env`, or connection strings. Use `DATABASE_URL` / `REDIS_URL` locally.
 - Prefer parameterized SQL. Do not invent schema that ignores Drizzle migrations in `packages/db`.
-- Multi-tenant: `hidden_gems` → filter `operator_id`; `document_chunks` → filter `user_id`.
+- Multi-tenant: `hidden_gems` → `(operator_id IS NULL OR operator_id = :operatorId)`; `document_chunks` → filter `user_id`.
 - Capacitor client: static export — chat via Nest SSE, not Next Route Handlers.
 
 ## Living skills policy

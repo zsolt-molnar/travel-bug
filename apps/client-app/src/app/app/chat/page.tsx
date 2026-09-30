@@ -1,51 +1,27 @@
-"use client";
+'use client';
 
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  TicketCard,
-  TimelineCard,
-} from "@/components/generative/cards";
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { TicketCard, TimelineCard } from '@/components/generative/cards';
 import {
   TOOL_GENERATE_ITINERARY_TIMELINE,
   TOOL_SHOW_TICKET,
   type TicketCardPayload,
   type TimelineCardPayload,
-} from "@/lib/types";
-import { API_URL, apiHeaders } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { mockTimeline } from "@/lib/mock/data";
-
-const fallbackTicket: TicketCardPayload = {
-  title: "Louvre Museum Pass",
-  venue: "Musée du Louvre",
-  datetime: "Tomorrow · 10:00",
-  code: "LV-88421",
-  documentId: "00000000-0000-4000-8000-000000000033",
-};
-
-const fallbackTimeline: TimelineCardPayload = {
-  tripDestination: "Paris",
-  days: [
-    {
-      dayNumber: 2,
-      date: "2026-10-13",
-      theme: "Art & passages",
-      items: mockTimeline.filter((i) => i.dayNumber === 2),
-    },
-  ],
-};
+} from '@/lib/types';
+import { API_URL, authHeaders } from '@/lib/api';
+import { cn } from '@/lib/utils';
 
 export default function ChatPage() {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: `${API_URL}/chat`,
-        headers: () => apiHeaders() as Record<string, string>,
+        headers: () => authHeaders() as Record<string, string>,
       }),
     [],
   );
@@ -56,7 +32,7 @@ export default function ChatPage() {
     e.preventDefault();
     const text = input.trim();
     if (!text) return;
-    setInput("");
+    setInput('');
     await sendMessage({ text });
   }
 
@@ -76,58 +52,48 @@ export default function ChatPage() {
           </p>
         ) : null}
         {messages.map((m) => {
-          const text = m.parts
-            ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
-            .map((p) => p.text)
-            .join("") ?? "";
+          const text =
+            m.parts
+              ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+              .map((p) => p.text)
+              .join('') ?? '';
 
-          const toolParts = m.parts?.filter(
-            (p) =>
-              typeof p.type === "string" &&
-              (p.type.startsWith("tool-") || p.type === "dynamic-tool"),
-          ) ?? [];
+          const toolParts =
+            m.parts?.filter(
+              (p) =>
+                typeof p.type === 'string' &&
+                (p.type.startsWith('tool-') || p.type === 'dynamic-tool'),
+            ) ?? [];
 
           return (
             <div
               key={m.id}
               className={cn(
-                "max-w-[92%] rounded-2xl px-3 py-2 text-sm",
-                m.role === "user"
-                  ? "ml-auto bg-primary text-primary-foreground"
-                  : "border border-border bg-card",
+                'max-w-[92%] rounded-2xl px-3 py-2 text-sm',
+                m.role === 'user'
+                  ? 'ml-auto bg-primary text-primary-foreground'
+                  : 'border border-border bg-card',
               )}
             >
               {text ? <p>{text}</p> : null}
               {toolParts.map((part, idx) => {
                 const name =
-                  "toolName" in part
+                  'toolName' in part
                     ? String(part.toolName)
-                    : part.type.replace(/^tool-/, "");
+                    : part.type.replace(/^tool-/, '');
                 const output =
-                  "output" in part
-                    ? part.output
-                    : "input" in part
-                      ? part.input
-                      : null;
-                if (name === TOOL_SHOW_TICKET) {
+                  'output' in part ? part.output : 'input' in part ? part.input : null;
+                if (name === TOOL_SHOW_TICKET && output) {
                   return (
                     <div key={idx} className="mt-3">
-                      <TicketCard
-                        payload={
-                          (output as TicketCardPayload) ?? fallbackTicket
-                        }
-                      />
+                      <TicketCard payload={output as TicketCardPayload} />
                     </div>
                   );
                 }
-                if (name === TOOL_GENERATE_ITINERARY_TIMELINE) {
+                if (name === TOOL_GENERATE_ITINERARY_TIMELINE && output) {
                   return (
                     <div key={idx} className="mt-3">
-                      <TimelineCard
-                        payload={
-                          (output as TimelineCardPayload) ?? fallbackTimeline
-                        }
-                      />
+                      <TimelineCard payload={output as TimelineCardPayload} />
                     </div>
                   );
                 }
@@ -150,7 +116,7 @@ export default function ChatPage() {
           placeholder="Show my museum ticket for tomorrow"
           className="flex-1"
         />
-        <Button type="submit" disabled={status === "streaming"}>
+        <Button type="submit" disabled={status === 'streaming'}>
           Send
         </Button>
       </form>

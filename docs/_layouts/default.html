@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
-    <meta name="description" content="{{ page.description | default: site.description | escape }}" />
+    <meta
+      name="description"
+      content="{{ page.description | default: site.description | escape }}"
+    />
     <style>
       :root {
         --mock: #9a3412;
@@ -18,16 +21,44 @@
         max-width: 48rem;
         margin: 0 auto;
         padding: 1.5rem 1.25rem 3rem;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         line-height: 1.55;
         color: #1f2937;
       }
-      h1, h2, h3 { line-height: 1.25; }
-      table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.95rem; }
-      th, td { border: 1px solid #e5e7eb; padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
-      th { background: #f9fafb; }
-      code { background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.9em; }
-      pre { overflow-x: auto; background: #f3f4f6; padding: 1rem; border-radius: 8px; }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.25;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1rem 0;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem 0.65rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f9fafb;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.1em 0.35em;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      pre {
+        overflow-x: auto;
+        background: #f3f4f6;
+        padding: 1rem;
+        border-radius: 8px;
+      }
       .badge {
         display: inline-block;
         font-size: 0.75rem;
@@ -38,9 +69,18 @@
         border-radius: 999px;
         vertical-align: middle;
       }
-      .badge-mock { color: var(--mock); background: var(--mock-bg); }
-      .badge-real { color: var(--real); background: var(--real-bg); }
-      .badge-partial { color: var(--partial); background: var(--partial-bg); }
+      .badge-mock {
+        color: var(--mock);
+        background: var(--mock-bg);
+      }
+      .badge-real {
+        color: var(--real);
+        background: var(--real-bg);
+      }
+      .badge-partial {
+        color: var(--partial);
+        background: var(--partial-bg);
+      }
       .legend {
         display: grid;
         gap: 0.75rem;
@@ -50,8 +90,13 @@
         border-radius: 10px;
         background: #fafafa;
       }
-      .legend p { margin: 0; }
-      .mermaid { margin: 1.25rem 0; overflow-x: auto; }
+      .legend p {
+        margin: 0;
+      }
+      .mermaid {
+        margin: 1.25rem 0;
+        overflow-x: auto;
+      }
       footer.site-footer {
         margin-top: 3rem;
         padding-top: 1rem;
@@ -59,45 +104,47 @@
         font-size: 0.875rem;
         color: #6b7280;
       }
-      a { color: #0f766e; }
+      a {
+        color: #0f766e;
+      }
     </style>
   </head>
   <body>
     <header>
-      <p style="margin:0 0 0.25rem;font-size:0.875rem;color:#6b7280;">Travel Bug · Working POC</p>
-      <h1 style="margin-top:0;">{{ page.title | default: site.title }}</h1>
+      <p style="margin: 0 0 0.25rem; font-size: 0.875rem; color: #6b7280">
+        Travel Bug · Working POC
+      </p>
+      <h1 style="margin-top: 0">{{ page.title | default: site.title }}</h1>
     </header>
 
-    <main>
-      {{ content }}
-    </main>
+    <main>{{ content }}</main>
 
     <footer class="site-footer">
       <p>
         Source of truth for product design:
-        <code>ARCHITECTURE.md</code> §8 (POC) / §9 (future).
-        Enable Pages: repo Settings → Pages → Branch <code>main</code>, folder <code>/docs</code>.
+        <code>ARCHITECTURE.md</code> §8 (POC) / §9 (future). Enable Pages: repo Settings →
+        Pages → Branch <code>main</code>, folder <code>/docs</code>.
       </p>
     </footer>
 
     <script type="module">
-      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
       mermaid.initialize({
         startOnLoad: false,
-        theme: "neutral",
-        securityLevel: "loose",
+        theme: 'neutral',
+        securityLevel: 'loose',
       });
 
       function promoteMermaidBlocks() {
         const blocks = document.querySelectorAll(
-          "pre > code.language-mermaid, pre > code.mermaid",
+          'pre > code.language-mermaid, pre > code.mermaid',
         );
         for (const code of blocks) {
           const pre = code.parentElement;
           if (!pre) continue;
-          const div = document.createElement("div");
-          div.className = "mermaid";
+          const div = document.createElement('div');
+          div.className = 'mermaid';
           // textContent strips Rouge spans and decodes entities (&gt; → >)
           div.textContent = code.textContent.trim();
           pre.replaceWith(div);
@@ -106,9 +153,9 @@
 
       promoteMermaidBlocks();
       try {
-        await mermaid.run({ querySelector: ".mermaid" });
+        await mermaid.run({ querySelector: '.mermaid' });
       } catch (err) {
-        console.error("Mermaid render failed:", err);
+        console.error('Mermaid render failed:', err);
       }
     </script>
   </body>

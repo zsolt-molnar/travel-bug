@@ -1,0 +1,12 @@
+node_modules
+dist
+.next
+out
+coverage
+uploads
+pnpm-lock.yaml
+*.min.js
+.turbo
+apps/client-app/android
+apps/client-app/ios
+packages/db/drizzle/meta

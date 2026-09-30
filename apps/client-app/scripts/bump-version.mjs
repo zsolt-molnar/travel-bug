@@ -43,7 +43,9 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 let { marketingVersion, buildNumber } = packageJson;
 
 if (!marketingVersion || !buildNumber) {
-  console.error('❌ Error: marketingVersion and buildNumber must be defined in package.json');
+  console.error(
+    '❌ Error: marketingVersion and buildNumber must be defined in package.json',
+  );
   process.exit(1);
 }
 
@@ -65,7 +67,9 @@ if (bumpType === 'major') {
 const newBuildNumber = buildNumber + 1;
 
 console.log(`📦 Bumping version:`);
-console.log(`   ${marketingVersion} (${buildNumber}) → ${newVersion} (${newBuildNumber})`);
+console.log(
+  `   ${marketingVersion} (${buildNumber}) → ${newVersion} (${newBuildNumber})`,
+);
 
 // Update package.json
 packageJson.marketingVersion = newVersion;
@@ -81,5 +85,7 @@ execSync('node scripts/sync-version.mjs', { stdio: 'inherit', cwd: rootDir });
 console.log(`\n✨ Version bump complete!`);
 console.log(`\nNext steps:`);
 console.log(`  1. Test the app`);
-console.log(`  2. Commit: git add -A && git commit -m "Bump version to ${newVersion} (${newBuildNumber})"`);
+console.log(
+  `  2. Commit: git add -A && git commit -m "Bump version to ${newVersion} (${newBuildNumber})"`,
+);
 console.log(`  3. Build mobile: pnpm build-mobile\n`);
